@@ -273,4 +273,136 @@
     }
   }
 
+  // ==========================================================================
+  // SIMULADOR DE FINANCIAMENTO INTERATIVO
+  // ==========================================================================
+  function setupFinancingCalculator(car) {
+    const simVehiclePrice = document.getElementById('simVehiclePrice');
+    const simDownPaymentRange = document.getElementById('simDownPaymentRange');
+    const simDownPaymentInput = document.getElementById('simDownPaymentInput');
+    const simDownPaymentPct = document.getElementById('simDownPaymentPct');
+    const simPresetChips = document.getElementById('simPresetChips');
+    const simTermSelector = document.getElementById('simTermSelector');
+    const simResultMonths = document.getElementById('simResultMonths');
+    const simResultInstallment = document.getElementById('simResultInstallment');
+    const simResultFinanced = document.getElementById('simResultFinanced');
+    const simResultDownPayment = document.getElementById('simResultDownPayment');
+    const simResultTotal = document.getElementById('simResultTotal');
+    const simWhatsappBtn = document.getElementById('simWhatsappBtn');
+
+    if (!simVehiclePrice || !simDownPaymentRange) return;
+
+    const carPrice = car.price || 50000;
+    simVehiclePrice.textContent = car.priceFormatted || `R$ ${carPrice.toLocaleString('pt-BR')}`;
+
+    // Configura limites do slider: min 10%, max 80% do valor
+    const minDown = Math.round(carPrice * 0.1);
+    const maxDown = Math.round(carPrice * 0.8);
+    let currentDown = Math.round(carPrice * 0.3); // padrão 30%
+    let currentMonths = 48; // padrão 48 meses
+    const monthlyRate = 0.0135; // taxa estimada 1.35% a.m. (tabela Price)
+
+    simDownPaymentRange.min = minDown;
+    simDownPaymentRange.max = maxDown;
+    simDownPaymentRange.step = 500;
+    simDownPaymentRange.value = currentDown;
+
+    function formatBRL(val) {
+      return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calculateInstallment(principal, months, rate) {
+      if (principal <= 0) return 0;
+      const factor = Math.pow(1 + rate, months);
+      return principal * (rate * factor) / (factor - 1);
+    }
+
+    function updateSimulation() {
+      const pct = Math.round((currentDown / carPrice) * 100);
+      if (simDownPaymentPct) simDownPaymentPct.textContent = `${pct}%`;
+      if (simDownPaymentRange) simDownPaymentRange.value = currentDown;
+      if (simDownPaymentInput) simDownPaymentInput.value = currentDown.toLocaleString('pt-BR');
+
+      const financed = Math.max(0, carPrice - currentDown);
+      const installment = calculateInstallment(financed, currentMonths, monthlyRate);
+      const totalCost = currentDown + (installment * currentMonths);
+
+      if (simResultMonths) simResultMonths.textContent = `${currentMonths}x de`;
+      if (simResultInstallment) simResultInstallment.textContent = formatBRL(installment);
+      if (simResultFinanced) simResultFinanced.textContent = formatBRL(financed);
+      if (simResultDownPayment) simResultDownPayment.textContent = formatBRL(currentDown);
+      if (simResultTotal) simResultTotal.textContent = formatBRL(totalCost);
+
+      if (simWhatsappBtn) {
+        const phone = config.phoneRaw || '554491484162';
+        const msg = `Olá! Gostei do ${car.brand} ${car.model} (${car.year}) anunciado por ${car.priceFormatted}. Fiz uma simulação de financiamento pelo site: Entrada de ${formatBRL(currentDown)} + ${currentMonths}x de ${formatBRL(installment)}. Gostaria de consultar a aprovação de crédito!`;
+        simWhatsappBtn.href = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      }
+    }
+
+    simDownPaymentRange.addEventListener('input', (e) => {
+      currentDown = parseInt(e.target.value, 10);
+      if (simPresetChips) {
+        simPresetChips.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      }
+      updateSimulation();
+    });
+
+    if (simDownPaymentInput) {
+      simDownPaymentInput.addEventListener('change', (e) => {
+        let clean = e.target.value.replace(/\D/g, '');
+        let num = parseInt(clean, 10) || minDown;
+        if (num < minDown) num = minDown;
+        if (num > maxDown) num = maxDown;
+        currentDown = num;
+        updateSimulation();
+      });
+    }
+
+    if (simPresetChips) {
+      simPresetChips.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          simPresetChips.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          const pct = parseInt(chip.dataset.pct, 10) / 100;
+          currentDown = Math.round(carPrice * pct);
+          updateSimulation();
+        });
+      });
+    }
+
+    if (simTermSelector) {
+      simTermSelector.querySelectorAll('.term-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          simTermSelector.querySelectorAll('.term-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentMonths = parseInt(btn.dataset.months, 10);
+          updateSimulation();
+        });
+      });
+    }
+
+    updateSimulation();
+  }
+
+  // Inicializa o simulador para o carro carregado
+  setupFinancingCalculator(car);
+
+  // ==========================================================================
+  // CONTROLE DA TELA DE CARREGAMENTO (LOADING SCREEN)
+  // ==========================================================================
+  function hidePageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+      setTimeout(() => {
+        loader.classList.add('loaded');
+      }, 250);
+    }
+  }
+
+  window.addEventListener('load', hidePageLoader);
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(hidePageLoader, 400);
+  }
+
 })();

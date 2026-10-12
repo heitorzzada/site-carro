@@ -904,13 +904,28 @@
   }
 
   // ==========================================================================
-  // INICIALIZAÇÃO
+  // GERENCIAMENTO DA TELA DE CARREGAMENTO & INICIALIZAÇÃO
   // ==========================================================================
+  function hidePageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+      setTimeout(() => {
+        loader.classList.add('loaded');
+      }, 250);
+    }
+  }
+
   function init() {
     populateFilterOptions();
     loadFiltersFromURL();
     setupEventListeners();
     renderCatalog();
+    hidePageLoader();
+  }
+
+  window.addEventListener('load', hidePageLoader);
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(hidePageLoader, 400);
   }
 
   init();

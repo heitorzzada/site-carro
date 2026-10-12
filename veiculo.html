@@ -29,6 +29,17 @@
 <body class="page-vehicle-detail">
 
   <!-- ========================================================================
+       TELA DE CARREGAMENTO / LOADING SCREEN (MONOCROMÁTICA AUTOMOTIVA)
+       ======================================================================== -->
+  <div id="pageLoader" class="page-loader" aria-hidden="true">
+    <div class="loader-content">
+      <div class="loader-spinner"></div>
+      <div class="loader-brand">SARTEC VEÍCULOS</div>
+      <div class="loader-bar"><div class="loader-progress"></div></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
        TOPBAR INSTITUCIONAL
        ======================================================================== -->
   <div class="site-topbar">
@@ -212,6 +223,18 @@
             <div class="v-price-meta">Consulte condições de troca ou pagamento facilitado diretamente no WhatsApp.</div>
           </div>
 
+          <!-- Atalho para Simulação de Financiamento -->
+          <a href="#simuladorFinanciamento" class="v-simulator-shortcut" title="Simular parcelas e financiamento deste veículo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <line x1="6" y1="8" x2="6" y2="8"/>
+              <line x1="10" y1="8" x2="18" y2="8"/>
+              <line x1="6" y1="12" x2="18" y2="12"/>
+              <line x1="6" y1="16" x2="12" y2="16"/>
+            </svg>
+            Simular Parcelas deste Carro
+          </a>
+
           <!-- 4 Especificações Principais -->
           <div class="v-quick-specs-grid">
             <div class="v-qspec-cell">
@@ -272,6 +295,92 @@
           <h3 class="features-title">Itens e Opcionais Confirmados</h3>
           <div class="features-chips-container" id="vFeaturesContainer">
             <!-- Chips gerados dinamicamente -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SIMULADOR DE FINANCIAMENTO AUTOMOTIVO
+           ==================================================================== -->
+      <section class="financing-calculator-section" id="simuladorFinanciamento">
+        <div class="section-title-wrap">
+          <div class="simulator-badge">Crédito & Condições</div>
+          <h2 class="section-title">Simulação de Financiamento</h2>
+          <p class="section-subtitle">Calcule as parcelas estimadas para este veículo e solicite aprovação rápida pelo WhatsApp</p>
+        </div>
+
+        <div class="simulator-card">
+          <div class="simulator-grid">
+            <!-- Coluna de Parâmetros da Simulação -->
+            <div class="sim-inputs-col">
+              <div class="sim-field-group">
+                <span class="form-label">Valor do Veículo</span>
+                <div class="sim-static-val" id="simVehiclePrice">R$ 0,00</div>
+              </div>
+
+              <div class="sim-field-group">
+                <div class="sim-label-row">
+                  <label class="form-label" for="simDownPaymentRange">Valor da Entrada (R$)</label>
+                  <span class="sim-pct-tag" id="simDownPaymentPct">30%</span>
+                </div>
+                <input type="range" id="simDownPaymentRange" min="0" max="100000" step="500" class="sim-range-slider" aria-label="Slider de valor de entrada">
+                <div class="sim-input-money-wrap">
+                  <span class="currency-prefix">R$</span>
+                  <input type="text" id="simDownPaymentInput" class="form-control sim-money-input" placeholder="0,00" aria-label="Valor numérico da entrada">
+                </div>
+                <div class="sim-preset-chips" id="simPresetChips">
+                  <button type="button" class="preset-chip" data-pct="20">20%</button>
+                  <button type="button" class="preset-chip active" data-pct="30">30%</button>
+                  <button type="button" class="preset-chip" data-pct="40">40%</button>
+                  <button type="button" class="preset-chip" data-pct="50">50%</button>
+                </div>
+              </div>
+
+              <div class="sim-field-group">
+                <label class="form-label">Prazo de Pagamento</label>
+                <div class="sim-term-selector" id="simTermSelector">
+                  <button type="button" class="term-btn" data-months="12">12x</button>
+                  <button type="button" class="term-btn" data-months="24">24x</button>
+                  <button type="button" class="term-btn" data-months="36">36x</button>
+                  <button type="button" class="term-btn active" data-months="48">48x</button>
+                  <button type="button" class="term-btn" data-months="60">60x</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coluna de Resultados Estimados -->
+            <div class="sim-result-col">
+              <div class="sim-result-header">
+                <span class="sim-res-subtitle">Estimativa de Parcela</span>
+                <div class="sim-res-installment">
+                  <span class="months-tag" id="simResultMonths">48x de</span>
+                  <div class="installment-amount" id="simResultInstallment">R$ 0,00</div>
+                </div>
+                <span class="sim-res-tax-info">*Taxa referencial estimada a partir de 1,35% a.m. (sujeito à análise de crédito bancário).</span>
+              </div>
+
+              <div class="sim-summary-breakdown">
+                <div class="breakdown-row">
+                  <span>Valor financiado:</span>
+                  <strong id="simResultFinanced">R$ 0,00</strong>
+                </div>
+                <div class="breakdown-row">
+                  <span>Entrada calculada:</span>
+                  <strong id="simResultDownPayment">R$ 0,00</strong>
+                </div>
+                <div class="breakdown-row">
+                  <span>Total estimado a prazo:</span>
+                  <strong id="simResultTotal">R$ 0,00</strong>
+                </div>
+              </div>
+
+              <a href="#" id="simWhatsappBtn" target="_blank" rel="noopener noreferrer" class="btn-whatsapp-sim">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.2.662.589 1.221.771 1.394.858.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564c.173.087.289.13.332.202.043.073.043.419-.101.824z"/>
+                </svg>
+                Enviar Simulação para Análise no WhatsApp
+              </a>
+            </div>
           </div>
         </div>
       </section>
