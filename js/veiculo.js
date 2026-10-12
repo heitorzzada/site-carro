@@ -116,28 +116,141 @@
     vWhatsappCtaBtn.href = whatsappUrl;
   }
 
-  // Galeria de Fotos
-  if (vMainImage && car.images && car.images.length > 0) {
-    vMainImage.src = car.images[0];
+  // Galeria de Fotos e Lightbox em Tela Cheia
+  let activeImageIndex = 0;
+  const carImages = (car.images && car.images.length > 0) 
+    ? car.images 
+    : ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80'];
+
+  const fallbackImg = 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80';
+
+  if (vMainImage) {
+    vMainImage.src = carImages[0];
     vMainImage.alt = `${car.brand} ${car.model} ${car.year}`;
+    vMainImage.onerror = () => {
+      vMainImage.onerror = null;
+      vMainImage.src = fallbackImg;
+    };
 
+    // Miniaturas: renderizar apenas se houver mais de 1 foto real
     if (vThumbnailsRow) {
-      vThumbnailsRow.innerHTML = car.images.map((imgUrl, index) => `
-        <img class="v-thumb ${index === 0 ? 'active' : ''}" 
-             src="${imgUrl}" 
-             alt="Foto ${index + 1} de ${car.brand} ${car.model}" 
-             data-img="${imgUrl}">
-      `).join('');
+      if (carImages.length > 1) {
+        vThumbnailsRow.style.display = 'flex';
+        vThumbnailsRow.innerHTML = carImages.map((imgUrl, index) => `
+          <img class="v-thumb ${index === 0 ? 'active' : ''}" 
+               src="${imgUrl}" 
+               alt="Foto ${index + 1} de ${car.brand} ${car.model}" 
+               data-img-index="${index}"
+               onerror="this.onerror=null; this.src='${fallbackImg}';">
+        `).join('');
 
-      vThumbnailsRow.querySelectorAll('.v-thumb').forEach(thumb => {
-        thumb.addEventListener('click', () => {
-          vThumbnailsRow.querySelectorAll('.v-thumb').forEach(t => t.classList.remove('active'));
-          thumb.classList.add('active');
-          vMainImage.src = thumb.dataset.img;
+        vThumbnailsRow.querySelectorAll('.v-thumb').forEach(thumb => {
+          thumb.addEventListener('click', () => {
+            const idx = parseInt(thumb.dataset.imgIndex, 10);
+            selectGalleryImage(idx);
+          });
         });
-      });
+      } else {
+        vThumbnailsRow.style.display = 'none';
+        vThumbnailsRow.innerHTML = '';
+      }
     }
   }
+
+  function selectGalleryImage(index) {
+    if (index < 0) index = carImages.length - 1;
+    if (index >= carImages.length) index = 0;
+    activeImageIndex = index;
+
+    if (vMainImage) {
+      vMainImage.src = carImages[activeImageIndex];
+    }
+
+    if (vThumbnailsRow) {
+      vThumbnailsRow.querySelectorAll('.v-thumb').forEach((t, i) => {
+        t.classList.toggle('active', i === activeImageIndex);
+      });
+    }
+
+    updateLightbox();
+  }
+
+  // ==========================================================================
+  // LIGHTBOX (AMPLIAÇÃO EM TELA CHEIA)
+  // ==========================================================================
+  const vMainWrap = document.getElementById('vMainWrap');
+  const galleryLightbox = document.getElementById('galleryLightbox');
+  const lightboxOverlay = document.getElementById('lightboxOverlay');
+  const lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
+  const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxPrevBtn = document.getElementById('lightboxPrevBtn');
+  const lightboxNextBtn = document.getElementById('lightboxNextBtn');
+  const lightboxCounter = document.getElementById('lightboxCounter');
+  const lightboxControls = document.getElementById('lightboxControls');
+
+  function openLightbox(index = activeImageIndex) {
+    if (!galleryLightbox || !lightboxImage) return;
+    activeImageIndex = index;
+    updateLightbox();
+    galleryLightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    if (!galleryLightbox) return;
+    galleryLightbox.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function updateLightbox() {
+    if (!lightboxImage) return;
+    lightboxImage.src = carImages[activeImageIndex];
+    lightboxImage.onerror = () => {
+      lightboxImage.onerror = null;
+      lightboxImage.src = fallbackImg;
+    };
+    if (lightboxCounter) {
+      lightboxCounter.textContent = `${activeImageIndex + 1} / ${carImages.length}`;
+    }
+    if (lightboxControls) {
+      lightboxControls.style.display = carImages.length > 1 ? 'flex' : 'none';
+    }
+  }
+
+  if (vMainWrap) {
+    vMainWrap.addEventListener('click', () => openLightbox(activeImageIndex));
+    vMainWrap.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openLightbox(activeImageIndex);
+      }
+    });
+  }
+
+  if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
+  if (lightboxOverlay) lightboxOverlay.addEventListener('click', closeLightbox);
+
+  if (lightboxPrevBtn) {
+    lightboxPrevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectGalleryImage(activeImageIndex - 1);
+    });
+  }
+
+  if (lightboxNextBtn) {
+    lightboxNextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectGalleryImage(activeImageIndex + 1);
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (galleryLightbox && galleryLightbox.style.display === 'flex') {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') selectGalleryImage(activeImageIndex - 1);
+      if (e.key === 'ArrowRight') selectGalleryImage(activeImageIndex + 1);
+    }
+  });
 
   // Ficha Técnica Completa (Grid Estruturado)
   if (vSpecsGrid) {
@@ -308,16 +421,22 @@
     simDownPaymentRange.value = currentDown;
 
     function formatBRL(val) {
+      if (isNaN(val) || val < 0) val = 0;
       return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
     function calculateInstallment(principal, months, rate) {
-      if (principal <= 0) return 0;
+      if (principal <= 0 || months <= 0) return 0;
       const factor = Math.pow(1 + rate, months);
+      if (factor <= 1) return principal / months;
       return principal * (rate * factor) / (factor - 1);
     }
 
     function updateSimulation() {
+      // Garantir limites
+      if (isNaN(currentDown) || currentDown < minDown) currentDown = minDown;
+      if (currentDown > maxDown) currentDown = maxDown;
+
       const pct = Math.round((currentDown / carPrice) * 100);
       if (simDownPaymentPct) simDownPaymentPct.textContent = `${pct}%`;
       if (simDownPaymentRange) simDownPaymentRange.value = currentDown;
@@ -335,26 +454,33 @@
 
       if (simWhatsappBtn) {
         const phone = config.phoneRaw || '554491484162';
-        const msg = `Olá! Gostei do ${car.brand} ${car.model} (${car.year}) anunciado por ${car.priceFormatted}. Fiz uma simulação de financiamento pelo site: Entrada de ${formatBRL(currentDown)} + ${currentMonths}x de ${formatBRL(installment)}. Gostaria de consultar a aprovação de crédito!`;
+        const msg = `Olá! Gostei do ${car.brand} ${car.model} (${car.year}), anunciado por ${car.priceFormatted}. Realizei uma estimativa ilustrativa pelo site: Entrada de ${formatBRL(currentDown)} + ${currentMonths}x de ${formatBRL(installment)}. Gostaria de consultar as condições reais e a aprovação de crédito com a equipe da Sartec!`;
         simWhatsappBtn.href = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
       }
     }
 
     simDownPaymentRange.addEventListener('input', (e) => {
-      currentDown = parseInt(e.target.value, 10);
-      if (simPresetChips) {
-        simPresetChips.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      const val = parseInt(e.target.value, 10);
+      if (!isNaN(val)) {
+        currentDown = val;
+        if (simPresetChips) {
+          simPresetChips.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+        }
+        updateSimulation();
       }
-      updateSimulation();
     });
 
     if (simDownPaymentInput) {
       simDownPaymentInput.addEventListener('change', (e) => {
         let clean = e.target.value.replace(/\D/g, '');
-        let num = parseInt(clean, 10) || minDown;
+        let num = parseInt(clean, 10);
+        if (isNaN(num)) num = minDown;
         if (num < minDown) num = minDown;
         if (num > maxDown) num = maxDown;
         currentDown = num;
+        if (simPresetChips) {
+          simPresetChips.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+        }
         updateSimulation();
       });
     }

@@ -171,9 +171,18 @@
         
         <!-- Coluna Esquerda: Galeria de Fotografias -->
         <div class="showcase-gallery-col">
-          <div class="gallery-main-wrap">
+          <div class="gallery-main-wrap" id="vMainWrap" title="Clique para ampliar a foto do veículo em tela cheia" role="button" tabindex="0" aria-label="Ampliar foto do veículo em tela cheia">
             <span class="gallery-category-badge" id="vCategoryBadge">Categoria</span>
-            <img id="vMainImage" class="gallery-main-img" src="" alt="Fotografia do veículo">
+            <img id="vMainImage" class="gallery-main-img" src="" alt="Fotografia do veículo" loading="eager">
+            <span class="gallery-expand-hint">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <polyline points="9 21 3 21 3 15"></polyline>
+                <line x1="21" y1="3" x2="14" y2="10"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+              </svg>
+              Ampliar Foto
+            </span>
           </div>
 
           <!-- Carrossel de Miniaturas -->
@@ -356,7 +365,7 @@
                   <span class="months-tag" id="simResultMonths">48x de</span>
                   <div class="installment-amount" id="simResultInstallment">R$ 0,00</div>
                 </div>
-                <span class="sim-res-tax-info">*Taxa referencial estimada a partir de 1,35% a.m. (sujeito à análise de crédito bancário).</span>
+                <span class="sim-res-tax-info">*Hipótese de taxa ilustrativa de 1,35% a.m. para fins de estimativa.</span>
               </div>
 
               <div class="sim-summary-breakdown">
@@ -378,8 +387,23 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.2.662.589 1.221.771 1.394.858.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564c.173.087.289.13.332.202.043.073.043.419-.101.824z"/>
                 </svg>
-                Enviar Simulação para Análise no WhatsApp
+                Consultar Condições Reais no WhatsApp
               </a>
+
+              <!-- Aviso Legal e Transparente do Financiamento -->
+              <div class="sim-disclaimer-box">
+                <div class="sim-disclaimer-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                </div>
+                <div class="sim-disclaimer-text">
+                  <strong>Estimativa Ilustrativa — Não Constitui Proposta Vinculante</strong>
+                  Os valores calculados utilizam uma taxa ilustrativa de referência (a partir de 1,35% a.m.). A taxa definitiva, o valor da entrada, o número de parcelas e a aprovação do crédito dependem da análise cadastral e das condições vigentes pelas instituições financeiras parceiras da Sartec Veículos.
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -573,6 +597,28 @@
       </a>
     </div>
   </aside>
+
+  <!-- Modal Lightbox em Tela Cheia para Fotos do Veículo -->
+  <div id="galleryLightbox" class="gallery-lightbox" role="dialog" aria-modal="true" aria-label="Visualização em Tela Cheia da Foto do Veículo" style="display:none;">
+    <div class="lightbox-overlay" id="lightboxOverlay"></div>
+    <div class="lightbox-container">
+      <button type="button" class="lightbox-close-btn" id="lightboxCloseBtn" aria-label="Fechar visualização em tela cheia">✕</button>
+      
+      <div class="lightbox-stage">
+        <img id="lightboxImage" class="lightbox-image" src="" alt="Foto ampliada do veículo">
+      </div>
+
+      <div class="lightbox-controls" id="lightboxControls">
+        <button type="button" class="lightbox-nav-btn prev" id="lightboxPrevBtn" aria-label="Foto anterior">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <span class="lightbox-counter" id="lightboxCounter">1 / 1</span>
+        <button type="button" class="lightbox-nav-btn next" id="lightboxNextBtn" aria-label="Próxima foto">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="js/vehicles-data.js"></script>

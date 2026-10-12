@@ -108,6 +108,7 @@
       <nav aria-label="Navegação Principal">
         <ul class="nav-menu">
           <li><a href="#inicio" class="nav-link active">Início</a></li>
+          <li><a href="#destaques" class="nav-link">Destaques</a></li>
           <li><a href="#estoque" class="nav-link">Estoque</a></li>
           <li><a href="#sobre" class="nav-link">Sobre a Loja</a></li>
           <li><a href="#contato" class="nav-link">Contato</a></li>
@@ -140,6 +141,7 @@
     <div class="mobile-nav-panel" id="mobileNavPanel">
       <ul class="mobile-nav-links">
         <li><a href="#inicio" class="nav-link">Início</a></li>
+        <li><a href="#destaques" class="nav-link">Veículos em Destaque</a></li>
         <li><a href="#estoque" class="nav-link">Estoque de Veículos</a></li>
         <li><a href="#sobre" class="nav-link">Sobre a Loja</a></li>
         <li><a href="#contato" class="nav-link">Contato e Localização</a></li>
@@ -158,82 +160,321 @@
   <!-- ========================================================================
        SEÇÃO INICIAL / HERO (APRESENTAÇÃO AUTOMOTIVA IMPACTANTE)
        ======================================================================== -->
-  <section class="hero-section" id="inicio">
-    <div class="container hero-grid">
-      <div class="hero-text-content">
-        <div class="hero-badge-tag">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-          Sartec Veículos • Planaltina do Paraná - PR
+  <section class="hero-section" id="inicio" aria-label="Apresentação e Destaques da Sartec Veículos">
+    <div class="hero-carousel-container" id="heroCarousel">
+      
+      <!-- Slide Track -->
+      <div class="hero-carousel-track" id="heroCarouselTrack">
+        
+        <!-- Slide 1: Conquista (Corolla XEi) -->
+        <div class="hero-slide active" data-slide-index="0" role="group" aria-roledescription="slide" aria-label="1 de 4: Conquista">
+          <div class="container hero-slide-grid">
+            <div class="hero-slide-text">
+              <div class="hero-badge-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Sartec Veículos • Seminovos Selecionados
+              </div>
+              <h1 class="hero-title">
+                Seu próximo carro está <span class="highlight">mais perto</span> do que você imagina.
+              </h1>
+              <p class="hero-description">
+                Encontre um veículo que combine com você e conheça as opções disponíveis na Sartec Veículos com procedência garantida.
+              </p>
+              <div class="hero-confirmed-badges">
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Procedência Verificada
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Atendimento Transparente
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Avaliação Justa na Troca
+                </span>
+              </div>
+              <div class="hero-ctas">
+                <a href="#estoque" class="btn-primary hero-btn-main">
+                  Encontrar Meu Carro
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </a>
+                <a href="https://wa.me/554491484162?text=Ol%C3%A1!%20Vim%20do%20site%20da%20Sartec%20Ve%C3%ADculos%20e%20gostaria%20de%20atendimento" 
+                   target="_blank" rel="noopener noreferrer" class="btn-secondary hero-btn-sub">
+                  Falar com a Sartec
+                </a>
+              </div>
+            </div>
+            
+            <div class="hero-slide-media">
+              <div class="hero-car-stage">
+                <div class="hero-car-ambient-glow"></div>
+                <img src="https://sartecveiculos.com.br/wp-content/uploads/2026/08/WhatsApp-Image-2026-08-24-at-4.01.57-PM.jpeg" 
+                     alt="Toyota Corolla XEi seminovo em destaque na Sartec Veículos"
+                     class="hero-car-img"
+                     loading="eager"
+                     onerror="this.onerror=null; this.src='img/hero-bg.jpg';"
+                     width="720" height="450">
+                <div class="hero-car-overlay-badge">
+                  <span class="badge-dot"></span>
+                  <span>Toyota Corolla XEi • 2020</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <h1 class="hero-title">
-          Encontre seu <span class="highlight">próximo carro</span>
-        </h1>
-
-        <p class="hero-description">
-          Seminovos selecionados com procedência rigorosa, documentação regularizada e negociação direta pelo WhatsApp.
-        </p>
-
-        <!-- Diferenciais Comerciais Confirmados -->
-        <div class="hero-confirmed-badges">
-          <span class="hero-feature-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Procedência Verificada
-          </span>
-          <span class="hero-feature-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Atendimento Transparente
-          </span>
-          <span class="hero-feature-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            WhatsApp Direto
-          </span>
+        <!-- Slide 2: Liberdade (S10 High Country) -->
+        <div class="hero-slide" data-slide-index="1" role="group" aria-roledescription="slide" aria-label="2 de 4: Liberdade">
+          <div class="container hero-slide-grid">
+            <div class="hero-slide-text">
+              <div class="hero-badge-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Força & Performance • Picape Selecionada
+              </div>
+              <h2 class="hero-title">
+                Mais liberdade para viver seus <span class="highlight">próximos caminhos</span>.
+              </h2>
+              <p class="hero-description">
+                Explore nosso estoque e encontre opções robustas para acompanhar sua rotina, suas viagens e seus novos planos.
+              </p>
+              <div class="hero-confirmed-badges">
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Tração 4x4 & Turbo Diesel
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Documentação Regular
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Consulta de Financiamento
+                </span>
+              </div>
+              <div class="hero-ctas">
+                <a href="#estoque" class="btn-primary hero-btn-main">
+                  Explorar Veículos
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </a>
+                <a href="https://wa.me/554491484162?text=Ol%C3%A1!%20Gostaria%20de%20consultar%20as%20picapes%20e%20ve%C3%ADculos%20dispon%C3%ADveis" 
+                   target="_blank" rel="noopener noreferrer" class="btn-secondary hero-btn-sub">
+                  Consultar pelo WhatsApp
+                </a>
+              </div>
+            </div>
+            
+            <div class="hero-slide-media">
+              <div class="hero-car-stage">
+                <div class="hero-car-ambient-glow"></div>
+                <img src="https://sartecveiculos.com.br/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-05-at-3.08.48-PM.jpeg" 
+                     alt="Chevrolet S10 High Country Turbo Diesel na Sartec Veículos"
+                     class="hero-car-img"
+                     loading="lazy"
+                     onerror="this.onerror=null; this.src='img/hero-bg.jpg';"
+                     width="720" height="450">
+                <div class="hero-car-overlay-badge">
+                  <span class="badge-dot"></span>
+                  <span>Chevrolet S10 High Country • 2024</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="hero-ctas">
-          <a href="#estoque" class="btn-primary hero-btn-main">
-            Ver Veículos em Estoque
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </a>
-          <a href="#sobre" class="btn-secondary hero-btn-sub">
-            Conhecer a Loja
-          </a>
+        <!-- Slide 3: Nova fase (Compass Longitude) -->
+        <div class="hero-slide" data-slide-index="2" role="group" aria-roledescription="slide" aria-label="3 de 4: Nova Fase">
+          <div class="container hero-slide-grid">
+            <div class="hero-slide-text">
+              <div class="hero-badge-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Conforto & Tecnologia • SUV Seminovos
+              </div>
+              <h2 class="hero-title">
+                Uma nova conquista começa com a <span class="highlight">escolha certa</span>.
+              </h2>
+              <p class="hero-description">
+                Conheça os veículos disponíveis e converse com nossa equipe sobre as condições de compra e o suporte completo na negociação.
+              </p>
+              <div class="hero-confirmed-badges">
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Veículo Revisado
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Atendimento Personalizado
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Sem Burocracia
+                </span>
+              </div>
+              <div class="hero-ctas">
+                <a href="#estoque" class="btn-primary hero-btn-main">
+                  Ver Estoque Completo
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </a>
+                <a href="https://wa.me/554491484162?text=Ol%C3%A1!%20Gostaria%20de%20tirar%20d%C3%BAvidas%20sobre%20as%20condi%C3%A7%C3%B5es%20de%20compra" 
+                   target="_blank" rel="noopener noreferrer" class="btn-secondary hero-btn-sub">
+                  Tirar Minhas Dúvidas
+                </a>
+              </div>
+            </div>
+            
+            <div class="hero-slide-media">
+              <div class="hero-car-stage">
+                <div class="hero-car-ambient-glow"></div>
+                <img src="https://sartecveiculos.com.br/wp-content/uploads/2026/09/WhatsApp-Image-2026-09-21-at-3.13.04-PM.jpeg" 
+                     alt="Jeep Compass Longitude seminovo na Sartec Veículos"
+                     class="hero-car-img"
+                     loading="lazy"
+                     onerror="this.onerror=null; this.src='img/hero-bg.jpg';"
+                     width="720" height="450">
+                <div class="hero-car-overlay-badge">
+                  <span class="badge-dot"></span>
+                  <span>Jeep Compass Longitude • 2021</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Slide 4: Próxima história (Cruze LTZ) -->
+        <div class="hero-slide" data-slide-index="3" role="group" aria-roledescription="slide" aria-label="4 de 4: Próxima História">
+          <div class="container hero-slide-grid">
+            <div class="hero-slide-text">
+              <div class="hero-badge-tag">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Turbo & Eficiência • Sedan de Procedência
+              </div>
+              <h2 class="hero-title">
+                Seu próximo capítulo pode começar <span class="highlight">sobre quatro rodas</span>.
+              </h2>
+              <p class="hero-description">
+                Descubra os veículos da Sartec e escolha com tranquilidade o modelo ideal para seu estilo de vida com suporte dedicado.
+              </p>
+              <div class="hero-confirmed-badges">
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Motor Turbo Eficiente
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Laudo Criterioso
+                </span>
+                <span class="hero-feature-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Contato Direto
+                </span>
+              </div>
+              <div class="hero-ctas">
+                <a href="#estoque" class="btn-primary hero-btn-main">
+                  Conhecer os Veículos
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </a>
+                <a href="https://wa.me/554491484162?text=Ol%C3%A1!%20Vim%20do%20site%20da%20Sartec%20Ve%C3%ADculos%20e%20gostaria%20de%20informa%C3%A7%C3%B5es" 
+                   target="_blank" rel="noopener noreferrer" class="btn-secondary hero-btn-sub">
+                  Entrar em Contato
+                </a>
+              </div>
+            </div>
+            
+            <div class="hero-slide-media">
+              <div class="hero-car-stage">
+                <div class="hero-car-ambient-glow"></div>
+                <img src="https://sartecveiculos.com.br/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-06-at-6.37.21-PM-1.jpeg" 
+                     alt="Chevrolet Cruze LTZ Turbo na Sartec Veículos"
+                     class="hero-car-img"
+                     loading="lazy"
+                     onerror="this.onerror=null; this.src='img/hero-bg.jpg';"
+                     width="720" height="450">
+                <div class="hero-car-overlay-badge">
+                  <span class="badge-dot"></span>
+                  <span>Chevrolet Cruze LTZ Turbo • 2019</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Card de Busca Rápida Integrado ao Estoque -->
-      <div class="hero-quick-card">
-        <div class="quick-card-header">
-          <h2 class="quick-card-title">Pesquisa Rápida</h2>
-          <span class="quick-card-badge">Estoque Real</span>
-        </div>
-        <p class="quick-card-subtitle">Localize o modelo ideal com rapidez</p>
+      <!-- Controles de Navegação (Setas) -->
+      <button type="button" class="hero-arrow-btn prev" id="heroPrevBtn" aria-label="Slide anterior">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button type="button" class="hero-arrow-btn next" id="heroNextBtn" aria-label="Próximo slide">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
 
-        <form id="heroQuickForm" class="quick-search-form">
-          <div>
-            <label class="form-label" for="heroSearchInput">Modelo ou Palavra-chave</label>
-            <input type="text" id="heroSearchInput" class="form-control" placeholder="Ex: Corolla, Hilux, S10, Cruze...">
-          </div>
+      <!-- Indicadores de Posição (Dots com Progresso) -->
+      <div class="hero-carousel-dots" id="heroDots" role="tablist" aria-label="Indicadores dos slides">
+        <button type="button" class="hero-dot active" data-index="0" role="tab" aria-selected="true" aria-label="Ir para slide 1"></button>
+        <button type="button" class="hero-dot" data-index="1" role="tab" aria-selected="false" aria-label="Ir para slide 2"></button>
+        <button type="button" class="hero-dot" data-index="2" role="tab" aria-selected="false" aria-label="Ir para slide 3"></button>
+        <button type="button" class="hero-dot" data-index="3" role="tab" aria-selected="false" aria-label="Ir para slide 4"></button>
+      </div>
 
-          <div>
-            <label class="form-label" for="heroBrandSelect">Marca do Veículo</label>
-            <select id="heroBrandSelect" class="form-control">
-              <option value="">Todas as Marcas</option>
-            </select>
-          </div>
+    </div>
 
-          <button type="submit" class="btn-primary" style="margin-top:6px; justify-content:center; width:100%;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <!-- Barra Dock de Pesquisa Rápida Integrada -->
+    <div class="hero-search-dock">
+      <div class="container">
+        <div class="search-dock-panel">
+          <div class="dock-panel-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            Buscar no Estoque
-          </button>
-        </form>
+            <div>
+              <strong>Pesquisa Rápida no Estoque</strong>
+              <span>Localize pelo modelo ou filtre pela marca desejada</span>
+            </div>
+          </div>
+
+          <form id="heroQuickForm" class="dock-search-form">
+            <div class="dock-field-keyword">
+              <label class="sr-only" for="heroSearchInput" style="display:none;">Modelo ou Palavra-chave</label>
+              <input type="text" id="heroSearchInput" class="form-control" placeholder="Digite modelo ou versão (Ex: Corolla, S10, Cruze...)">
+            </div>
+
+            <div class="dock-field-brand">
+              <label class="sr-only" for="heroBrandSelect" style="display:none;">Marca do Veículo</label>
+              <select id="heroBrandSelect" class="form-control">
+                <option value="">Todas as Marcas</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-primary dock-submit-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Buscar no Estoque
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   </section>
@@ -278,6 +519,35 @@
           <h4>Contato Direto pelo WhatsApp</h4>
           <p>Atendimento comercial rápido sem intermediários</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SEÇÃO: VEÍCULOS EM DESTAQUE (SELEÇÃO ESPECIAL DO PÁTIO)
+       ======================================================================== -->
+  <section class="featured-showcase-section" id="destaques" aria-label="Veículos em Destaque">
+    <div class="container">
+      <div class="section-heading-wrap">
+        <span class="section-kicker">Showroom Selecionado</span>
+        <h2 class="section-main-title">Veículos em Destaque</h2>
+        <p class="section-subtext">
+          Confira modelos seminovos de alta procura, com quilometragem atestada, laudo de procedência e prontos para entrega imediata.
+        </p>
+      </div>
+
+      <!-- Grade de Destaques Gerada Dinamicamente -->
+      <div class="vehicles-grid" id="featuredGrid">
+        <!-- Preenchido pelo app.js com 4 carros top -->
+      </div>
+
+      <div class="showcase-footer-action">
+        <a href="#estoque" class="btn-secondary showcase-view-all-btn">
+          Explorar Todos os 24 Carros no Estoque Completo
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
       </div>
     </div>
   </section>
@@ -362,19 +632,19 @@
             </button>
           </div>
 
-          <!-- Busca Textual -->
+          <!-- 1. Carros (Busca por Modelo ou Nome) -->
           <div class="filter-group">
-            <label class="filter-title" for="filterSearch">Modelo ou Termo</label>
+            <label class="filter-title" for="filterSearch">Carros</label>
             <div class="search-input-wrapper">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <input type="text" id="filterSearch" class="form-control" placeholder="Buscar veículo...">
+              <input type="text" id="filterSearch" class="form-control" placeholder="Buscar carro...">
             </div>
           </div>
 
-          <!-- Marca -->
+          <!-- 2. Marca -->
           <div class="filter-group">
             <label class="filter-title" for="filterBrand">Marca</label>
             <select id="filterBrand" class="form-control">
@@ -382,15 +652,7 @@
             </select>
           </div>
 
-          <!-- Carroceria / Categoria -->
-          <div class="filter-group">
-            <label class="filter-title" for="filterCategory">Carroceria</label>
-            <select id="filterCategory" class="form-control">
-              <option value="">Todas as Carrocerias</option>
-            </select>
-          </div>
-
-          <!-- Câmbio -->
+          <!-- 3. Câmbio -->
           <div class="filter-group">
             <label class="filter-title" for="filterTransmission">Câmbio</label>
             <select id="filterTransmission" class="form-control">
@@ -400,21 +662,9 @@
             </select>
           </div>
 
-          <!-- Combustível -->
+          <!-- 4. Ano -->
           <div class="filter-group">
-            <label class="filter-title" for="filterFuel">Combustível</label>
-            <select id="filterFuel" class="form-control">
-              <option value="">Todos os Combustíveis</option>
-              <option value="Flex">Flex</option>
-              <option value="Diesel">Diesel</option>
-              <option value="Gasolina">Gasolina</option>
-              <option value="Gasolina Turbo">Gasolina Turbo</option>
-            </select>
-          </div>
-
-          <!-- Ano Mínimo e Máximo -->
-          <div class="filter-group">
-            <span class="filter-title">Ano de Fabricação</span>
+            <span class="filter-title">Ano</span>
             <div class="filter-row-dual">
               <select id="filterMinYear" class="form-control" aria-label="Ano Mínimo">
                 <option value="">De</option>
@@ -425,9 +675,9 @@
             </div>
           </div>
 
-          <!-- Preço Mínimo e Máximo -->
+          <!-- 5. Filtrar por Preço -->
           <div class="filter-group">
-            <span class="filter-title">Faixa de Preço (R$)</span>
+            <span class="filter-title">Filtrar por Preço</span>
             <div class="filter-row-dual">
               <select id="filterMinPrice" class="form-control" aria-label="Preço Mínimo">
                 <option value="">Mínimo</option>
@@ -447,18 +697,6 @@
                 <option value="200000">R$ 200.000</option>
               </select>
             </div>
-          </div>
-
-          <!-- Quilometragem Máxima -->
-          <div class="filter-group">
-            <label class="filter-title" for="filterMaxKm">KM Máxima</label>
-            <select id="filterMaxKm" class="form-control">
-              <option value="">Qualquer KM</option>
-              <option value="50000">Até 50.000 km</option>
-              <option value="100000">Até 100.000 km</option>
-              <option value="150000">Até 150.000 km</option>
-              <option value="200000">Até 200.000 km</option>
-            </select>
           </div>
         </aside>
 
@@ -489,87 +727,66 @@
       </div>
 
       <div style="display:flex; flex-direction:column; gap:16px;">
+        <!-- 1. Carros -->
         <div>
-          <label class="form-label" for="mFilterSearch">Modelo ou Termo</label>
-          <input type="text" id="mFilterSearch" class="form-control" placeholder="Buscar...">
+          <label class="form-label" for="mFilterSearch">Carros</label>
+          <input type="text" id="mFilterSearch" class="form-control" placeholder="Buscar carro...">
         </div>
 
+        <!-- 2. Marca -->
         <div>
           <label class="form-label" for="mFilterBrand">Marca</label>
           <select id="mFilterBrand" class="form-control"></select>
         </div>
 
+        <!-- 3. Câmbio -->
         <div>
-          <label class="form-label" for="mFilterCategory">Carroceria</label>
-          <select id="mFilterCategory" class="form-control"></select>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div>
-            <label class="form-label" for="mFilterTransmission">Câmbio</label>
-            <select id="mFilterTransmission" class="form-control">
-              <option value="">Todos os Câmbios</option>
-              <option value="Automático">Automático</option>
-              <option value="Manual">Manual</option>
-            </select>
-          </div>
-          <div>
-            <label class="form-label" for="mFilterFuel">Combustível</label>
-            <select id="mFilterFuel" class="form-control">
-              <option value="">Todos</option>
-              <option value="Flex">Flex</option>
-              <option value="Diesel">Diesel</option>
-              <option value="Gasolina">Gasolina</option>
-              <option value="Gasolina Turbo">Gasolina Turbo</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="form-label" for="mFilterMaxKm">Quilometragem Máxima</label>
-          <select id="mFilterMaxKm" class="form-control">
-            <option value="">Qualquer KM</option>
-            <option value="50000">Até 50.000 km</option>
-            <option value="100000">Até 100.000 km</option>
-            <option value="150000">Até 150.000 km</option>
-            <option value="200000">Até 200.000 km</option>
+          <label class="form-label" for="mFilterTransmission">Câmbio</label>
+          <select id="mFilterTransmission" class="form-control">
+            <option value="">Todos os Câmbios</option>
+            <option value="Automático">Automático</option>
+            <option value="Manual">Manual</option>
           </select>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div>
-            <label class="form-label" for="mFilterMinYear">Ano Mínimo</label>
-            <select id="mFilterMinYear" class="form-control"></select>
-          </div>
-          <div>
-            <label class="form-label" for="mFilterMaxYear">Ano Máximo</label>
-            <select id="mFilterMaxYear" class="form-control"></select>
+        <!-- 4. Ano -->
+        <div>
+          <label class="form-label">Ano</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <select id="mFilterMinYear" class="form-control" aria-label="Ano Mínimo"></select>
+            </div>
+            <div>
+              <select id="mFilterMaxYear" class="form-control" aria-label="Ano Máximo"></select>
+            </div>
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <div>
-            <label class="form-label" for="mFilterMinPrice">Preço Mínimo</label>
-            <select id="mFilterMinPrice" class="form-control">
-              <option value="">Mínimo</option>
-              <option value="20000">R$ 20.000</option>
-              <option value="40000">R$ 40.000</option>
-              <option value="60000">R$ 60.000</option>
-              <option value="80000">R$ 80.000</option>
-              <option value="100000">R$ 100.000</option>
-            </select>
-          </div>
-          <div>
-            <label class="form-label" for="mFilterMaxPrice">Preço Máximo</label>
-            <select id="mFilterMaxPrice" class="form-control">
-              <option value="">Máximo</option>
-              <option value="40000">R$ 40.000</option>
-              <option value="60000">R$ 60.000</option>
-              <option value="80000">R$ 80.000</option>
-              <option value="100000">R$ 100.000</option>
-              <option value="150000">R$ 150.000</option>
-              <option value="200000">R$ 200.000</option>
-            </select>
+        <!-- 5. Filtrar por Preço -->
+        <div>
+          <label class="form-label">Filtrar por Preço</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <select id="mFilterMinPrice" class="form-control" aria-label="Preço Mínimo">
+                <option value="">Mínimo</option>
+                <option value="20000">R$ 20.000</option>
+                <option value="40000">R$ 40.000</option>
+                <option value="60000">R$ 60.000</option>
+                <option value="80000">R$ 80.000</option>
+                <option value="100000">R$ 100.000</option>
+              </select>
+            </div>
+            <div>
+              <select id="mFilterMaxPrice" class="form-control" aria-label="Preço Máximo">
+                <option value="">Máximo</option>
+                <option value="40000">R$ 40.000</option>
+                <option value="60000">R$ 60.000</option>
+                <option value="80000">R$ 80.000</option>
+                <option value="100000">R$ 100.000</option>
+                <option value="150000">R$ 150.000</option>
+                <option value="200000">R$ 200.000</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -807,9 +1024,15 @@
             </div>
           </div>
 
-          <!-- Botão WhatsApp com Mensagem Padronizada Oficial -->
-          <div class="modal-cta-box">
-            <a href="#" id="modalWhatsappBtn" target="_blank" rel="noopener noreferrer" class="btn-card-whatsapp" style="padding:14px; font-size:0.95rem; justify-content:center;">
+          <!-- Ações do Modal: Acessar Anúncio Completo e WhatsApp Padronizado -->
+          <div class="modal-cta-box" style="display:flex; flex-direction:column; gap:10px; margin-top:1.5rem;">
+            <a href="#" id="modalFullDetailsBtn" class="btn-primary" style="padding:13px 18px; font-size:0.95rem; justify-content:center; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+              Ver Página Completa do Anúncio
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="#" id="modalWhatsappBtn" target="_blank" rel="noopener noreferrer" class="btn-card-whatsapp" style="padding:13px 18px; font-size:0.95rem; justify-content:center;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.2.662.589 1.221.771 1.394.858.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564c.173.087.289.13.332.202.043.073.043.419-.101.824z"/>
               </svg>

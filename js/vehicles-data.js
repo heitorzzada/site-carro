@@ -790,7 +790,40 @@ const SARTEC_VEHICLES = [
   }
 ];
 
+// Normalização das URLs locais para manter navegação 100% no projeto
+SARTEC_VEHICLES.forEach(car => {
+  car.officialExternalUrl = car.detailsUrl;
+  car.detailsUrl = `veiculo.html?id=${encodeURIComponent(car.id)}`;
+  car.localUrl = `veiculo.html?id=${encodeURIComponent(car.id)}`;
+});
+
+// Funções utilitárias do Catálogo
+function getVehicleById(id) {
+  if (!id) return null;
+  return SARTEC_VEHICLES.find(car => car.id === id) || null;
+}
+
+function getFeaturedVehicles(limit = 4) {
+  // Seleção de 4 destaques representativos e procurados no pátio
+  const featuredIds = ["car-7318", "car-8354", "car-8042", "car-8424"];
+  const list = [];
+  featuredIds.forEach(id => {
+    const v = getVehicleById(id);
+    if (v) list.push(v);
+  });
+  if (list.length < limit) {
+    SARTEC_VEHICLES.forEach(v => {
+      if (!list.find(x => x.id === v.id) && list.length < limit) {
+        list.push(v);
+      }
+    });
+  }
+  return list.slice(0, limit);
+}
+
 if (typeof window !== "undefined") {
   window.SARTEC_VEHICLES = SARTEC_VEHICLES;
   window.SARTEC_CONFIG = SARTEC_CONFIG;
+  window.getVehicleById = getVehicleById;
+  window.getFeaturedVehicles = getFeaturedVehicles;
 }
