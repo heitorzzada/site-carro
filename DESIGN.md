@@ -1,16 +1,17 @@
 # DESIGN.md — Sartec Veículos Design System & Screen Specifications
 > **Google Stitch Compatible Specification (`stitch.withgoogle.com`)**  
 > **Brand:** Sartec Veículos  
-> **Aesthetic Direction:** Strict Monochrome Luxury Automotive (Preto Absoluto & Branco Puro)  
+> **Aesthetic Direction:** Luxury Monochrome Automotive with Refined Gold Accents (Preto Absoluto, Branco Puro & Dourado Nobre)  
 > **Target Devices:** Desktop (1240px container), Tablet (768px-1024px), Mobile (<640px)
 
 ---
 
 ## 1. Design Principles & Vibe
-- **Pure Monochrome High-Contrast:** A deep carbon black (`#000000` / `#0A0A0A`) background paired with crisp pure white typography (`#FFFFFF`) and platinum accents (`#E4E4E7`). 
-- **Functional Exception:** The only non-monochrome accent is the official WhatsApp green (`#25D366`), dedicated solely to commercial conversion buttons.
+- **Pure Monochrome High-Contrast Base:** A deep carbon black (`#000000` / `#0A0A0A`) background paired with crisp pure white typography (`#FFFFFF`) and platinum accents (`#E4E4E7`).
+- **Luxury Gold Accents (`#D4AF37`):** Refined touches of metallic champagne/gold applied to key highlights, badges, section titles, price displays, active indicators, and interactive cards to impart a showroom luxury feel without breaking the dark contrast.
+- **Functional Exception:** The official WhatsApp green (`#25D366`) remains strictly dedicated solely to commercial conversion buttons.
 - **Precision Automotive Ergonomics:** Large titles in geometric modern sans (*Outfit*), clean technical data grids, high-contrast price cards, and interactive loan calculators.
-- **Seamless Loading Experience:** Smooth initial screen loader (`#pageLoader`) with rotating pulse spinner and progressive loading bar.
+- **Seamless Loading Experience:** Smooth initial screen loader (`#pageLoader`) with rotating gold pulse spinner and progressive loading bar.
 
 ---
 
@@ -18,24 +19,33 @@
 
 ### 2.1 Color Palette
 ```css
-/* Core Monochrome Tokens */
---bg-page:           #000000; /* Preto absoluto de fundo */
---bg-surface:        #0A0A0A; /* Superfície de módulos */
---bg-card:           #121212; /* Fundo de cards e seções */
---bg-card-hover:     #1A1A1A; /* Estado de hover */
---bg-elevated:       #202020; /* Elementos flutuantes / modais */
---bg-input:          #080808; /* Campos de formulário */
+/* Core Monochrome Base */
+--bg-page:              #000000; /* Preto absoluto de fundo */
+--bg-surface:           #0A0A0A; /* Superfície de módulos */
+--bg-card:              #121212; /* Fundo de cards e seções */
+--bg-card-hover:        #1A1A1A; /* Estado de hover */
+--bg-elevated:          #202020; /* Elementos flutuantes / modais */
+--bg-input:             #080808; /* Campos de formulário */
+
+/* Luxury Gold Accents */
+--color-gold:           #D4AF37; /* Dourado nobre principal */
+--color-gold-light:     #F6E7B0; /* Dourado claro / champagne */
+--color-gold-dark:      #B8860B; /* Dourado escuro / âmbar */
+--color-gold-gradient:  linear-gradient(135deg, #F6E7B0 0%, #D4AF37 50%, #AA820A 100%);
+--border-gold:          rgba(212, 175, 55, 0.35);
+--border-gold-strong:   rgba(212, 175, 55, 0.65);
+--shadow-gold-glow:     0 0 16px rgba(212, 175, 55, 0.25);
 
 /* Text & Contrast */
---text-main:         #FFFFFF; /* Títulos, preços e textos principais */
---text-secondary:    #A1A1AA; /* Descrições e legendas */
---text-muted:        #71717A; /* Metadados e rótulos secundários */
+--text-main:            #FFFFFF; /* Títulos, preços e textos principais */
+--text-secondary:       #A1A1AA; /* Descrições e legendas */
+--text-muted:           #71717A; /* Metadados e rótulos secundários */
 
 /* Borders */
---border-light:      rgba(255, 255, 255, 0.10);
---border-medium:     rgba(255, 255, 255, 0.20);
---border-focus:      #FFFFFF;
---border-accent:     #FFFFFF;
+--border-light:         rgba(255, 255, 255, 0.10);
+--border-medium:        rgba(255, 255, 255, 0.20);
+--border-focus:         var(--color-gold);
+--border-accent:        var(--color-gold);
 
 /* Functional Action (WhatsApp Only) */
 --color-whatsapp:       #25D366;
@@ -65,60 +75,69 @@
 ### Screen 1: Home & Catalog (`index.html`)
 1. **Screen Loader (`#pageLoader`):**
    - Fullscreen `#000000` overlay.
-   - Circular spinner + uppercase letterspaced text `SARTEC VEÍCULOS` + horizontal bar.
+   - Circular spinner com topo dourado + texto `SARTEC VEÍCULOS` + barra de progresso em gradiente dourado (`--color-gold-gradient`).
    - Fades out cleanly on window load.
 2. **Topbar & Sticky Header (`.site-header`):**
    - Glassmorphic black background (`rgba(0, 0, 0, 0.94)`).
-   - Official Sartec logo, desktop nav links, WhatsApp direct CTA button.
+   - Ícones de localização/horário com sutil cor dourada (`--color-gold`).
+   - Official Sartec logo, links de navegação com indicador ativo dourado, botão CTA direto no WhatsApp.
 3. **Hero Section (`.hero-section`):**
    - Cinematic automotive backdrop overlay with gradient.
-   - Title *"Encontre seu próximo carro"*.
-   - Quick search card with brand filter and instant redirect to catalog.
+   - Tag de destaque dourada *"Showroom de Seminovos"*.
+   - Palavra em destaque no título com gradiente/cor dourada (*"seu próximo carro"*).
+   - Quick search card com borda superior dourada (`3px solid var(--color-gold)`).
 4. **Pillars Strip (`.pillars-strip`):**
-   - 3 verified commitments: Procedência, Atendimento Transparente, WhatsApp Direto.
+   - 3 verified commitments com caixas de ícone estilizadas com borda e preenchimento dourado (`rgba(212, 175, 55, 0.08)`).
 5. **Inventory Catalog (`.catalog-section`):**
-   - Sticky sidebar filter panel: Search, Brand, Body Type, Transmission, Fuel, Year, Price range.
-   - Active filter pills with instant remove action.
-   - 3-column vehicle grid (`.vehicles-grid`) with:
+   - Título de seção com barra lateral dourada (`4px solid var(--color-gold)`).
+   - Contador de estoque com cápsula em borda dourada e numeral destacado em ouro.
+   - Sticky sidebar filter panel com topo dourado e tags de filtros ativos com borda dourada.
+   - 3-column vehicle grid (`.vehicles-grid`) com:
      - 16:10 real vehicle photo.
-     - Pure White category badge (`.card-category-badge`).
-     - Title, version, price card, and 3 quick specs (Year, Mileage, Gearbox).
-     - Action buttons: Pure White **"Ver Detalhes"** button (routes to `veiculo.html?id=ID`) + Black/Green WhatsApp button.
+     - Pure White category badge (`.card-category-badge`) com borda fina dourada.
+     - Tag da marca em tipografia dourada (`.card-brand`).
+     - Card de preço com borda esquerda dourada e valor contrastante.
+     - Ficha técnica rápida em 3 colunas (Ano, Km, Câmbio).
+     - Hover com brilho perolado dourado (`--shadow-gold-glow`).
+     - Botão Branco **"Ver Detalhes"** com borda dourada (navega para `veiculo.html?id=ID`) + Botão Preto/Verde WhatsApp.
 6. **Showroom & About Section (`.about-section`):**
+   - Citação em destaque com borda dourada e ícones de contato em dourado.
    - Physical showroom address in Planaltina do Paraná, business hours, and embedded Google Maps.
 7. **Floating Dock (`.floating-actions-dock`):**
-   - Instagram button (Black with White border) + WhatsApp button (Green).
+   - Instagram button (Preto com borda dourada e glow no hover) + WhatsApp button (Oficial Verde).
 
 ---
 
 ### Screen 2: Dedicated Vehicle Detail & Simulator (`veiculo.html?id=car-XXXX`)
 1. **Screen Loader (`#pageLoader`):**
-   - Instant loading transition on entering any car's dedicated page.
+   - Transição imediata de carregamento com spinner e barra de progresso dourada.
 2. **Breadcrumbs (`.vehicle-breadcrumbs`):**
-   - `Início / Estoque / [Marca] / [Modelo]`
+   - `Início / Estoque / [Marca] / [Modelo]` com o modelo destacado em dourado nobre.
 3. **Showcase Layout (`.vehicle-showcase-layout`):**
    - **Left Column (Gallery):**
-     - Large main photo (16:10) with category badge.
-     - Interactive thumbnail carousel (`.gallery-thumbs-row`) with click-to-preview.
-     - Trust badges: Procedência Garantida, Documentação 100% Regular.
+     - Foto principal de alta resolução com badge de categoria.
+     - Carrossel de miniaturas com borda ativa dourada brilhante.
+     - Badges de confiança (Procedência Garantida / Documentação 100% Regular) com ícones dourados.
    - **Right Column (Commercial Box):**
-     - Brand tag, vehicle full title, and version.
-     - Highlight price card (`.v-price-card`): Price in pure white, financing terms.
-     - Simulator shortcut button (`.v-simulator-shortcut`): Scrolls directly to calculator.
-     - 4-grid quick specifications (Year, Mileage, Transmission, Fuel).
-     - Prominent WhatsApp negotiation CTA button with pre-filled message.
+     - Tag da marca em cápsula dourada nobre.
+     - Título e versão completa do veículo.
+     - **Card de Preço em Destaque:** Borda esquerda dourada de 5px, preço em fonte grande em dourado nobre com suave glow (`--color-gold`).
+     - **Atalho para o Simulador:** Botão estilizado com ícone e texto dourado que rola suavemente até a calculadora.
+     - 4 especificações rápidas em caixas de dados técnicas.
+     - Botão de Negociação WhatsApp com mensagem pré-formatada do veículo.
 4. **Full Technical Specifications (`.vehicle-specs-section`):**
-   - 12 structured cells: Marca, Modelo, Versão, Ano/Modelo, Quilometragem, Câmbio, Combustível, Carroceria, Cor, Portas, Placa, Condição.
-   - Verified equipment chips container with checkmarks.
+   - Título de seção com barra lateral dourada.
+   - 12 structured cells com borda esquerda dourada.
+   - Chips de equipamentos verificados com ícone de checkmark dourado.
 5. **Interactive Financing Simulator (`.financing-calculator-section`):**
-   - Dynamic real-time calculation based on the vehicle's specific price:
-     - **Valor da Entrada:** Range slider + text input + quick percentage chips (20%, 30%, 40%, 50%).
-     - **Prazo de Parcelas:** 12x, 24x, 36x, 48x, 60x.
-     - **Cálculo da Parcela:** Price formula calculation with estimated monthly rate.
-     - **Resumo:** Valor Financiado, Entrada Calculada, Total Estimado.
-     - **WhatsApp CTA:** Button *"Enviar Simulação para Análise no WhatsApp"* with pre-filled parameters.
+   - Badge *"Crédito & Condições"* em dourado com fundo translúcido.
+   - **Valor da Entrada:** Slider interativo com track dourado, input de moeda e chips rápidos (20%, 30%, 40%, 50%) com estado ativo em dourado.
+   - **Prazo de Parcelas:** Botões de prazo (12x a 60x) com seleção ativa dourada.
+   - **Painel de Resultados:** Borda esquerda dourada, destaque da parcela estimada em valor grande dourado (`--color-gold`).
+   - **Resumo:** Valor Financiado, Entrada Calculada, Total Estimado a Prazo.
+   - **WhatsApp CTA:** Botão comercial direto *"Enviar Simulação para Análise no WhatsApp"* com todos os parâmetros calculados prontos para envio.
 6. **Related Vehicles (`.related-section`):**
-   - 3 matching vehicles from the real 24-car inventory.
+   - 3 opções recomendadas com cards interativos no mesmo padrão visual preto, branco e dourado.
 
 ---
 
