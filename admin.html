@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Lojista — Sartec Veículos (SaaS de Gestão Automotiva)</title>
+  
+  <meta name="description" content="Painel de controle administrativo, CRM Kanban, DRE de estoque e estúdio de marketing automatizado da Sartec Veículos.">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Favicon Oficial -->
+  <link rel="icon" type="image/png" href="https://sartecveiculos.com.br/wp-content/uploads/2026/07/cropped-Sartec-Favicon-32x32.png" sizes="32x32">
+
+  <!-- Tipografia: Outfit (Headings) & Plus Jakarta Sans (Texto Limpo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Folha de Estilos Unificada -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-body">
+
+  <!-- Topbar Administrativa Sticky -->
+  <header class="admin-navbar">
+    <div class="container admin-nav-inner">
+      <div class="admin-brand-tag">
+        <a href="index.html" title="Voltar à Vitrine Pública">
+          <img src="https://sartecveiculos.com.br/wp-content/uploads/2025/07/Logo-Sartec-Veiculos-_fundo-transparente_-e1753331438782.webp" 
+               alt="Sartec Veículos" 
+               style="height:36px; width:auto; display:block;">
+        </a>
+        <span class="admin-badge-saas">PRO SUITE LOJISTA</span>
+      </div>
+
+      <!-- Abas de Navegação do Painel -->
+      <nav class="admin-menu-tabs" role="tablist">
+        <button type="button" class="admin-tab-btn active" data-tab="tabDashboard">
+          📊 Visão Geral & DRE
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tabStock">
+          🚘 Gestão de Estoque
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tabKanban">
+          📋 CRM Kanban de Vendas
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tabMarketing">
+          🎨 Estúdio de Marketing
+        </button>
+        <button type="button" class="admin-tab-btn" data-tab="tabSettings">
+          ⚙️ Configurações
+        </button>
+      </nav>
+
+      <!-- Ações Rápidas -->
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button type="button" class="btn-primary" id="btnAdminAddCar" style="padding:8px 16px; font-size:0.82rem; font-weight:800;">
+          ➕ Novo Veículo
+        </button>
+        <a href="index.html" class="btn-secondary" style="padding:8px 14px; font-size:0.82rem; color:#FFF; border-color:rgba(255,255,255,0.2);">
+          👁️ Ver Vitrine Pública
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal do Painel -->
+  <main class="container" style="padding: 24px 0 60px;">
+
+    <!-- ======================================================================
+         ABA 1: DASHBOARD FINANCEIRO E DRE GERAL
+         ====================================================================== -->
+    <section id="tabDashboard" class="admin-tab-content active">
+      
+      <!-- Banner de Alerta de Capital Parado (>40 dias no pátio) -->
+      <div class="alert-capital-parado" id="alertCapitalParadoBox" style="display:none;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="font-size:2rem;">⚠️</div>
+          <div>
+            <h4 id="alertParadoTitle">Alerta de Capital Parado</h4>
+            <p id="alertParadoDesc">Veículo há mais de 40 dias no pátio. Sugestão: Criar arte promocional ou ajustar margem.</p>
+          </div>
+        </div>
+        <div>
+          <button type="button" class="btn-primary" id="btnAlertaCriarArte" style="padding:8px 16px; font-size:0.82rem;">
+            🔥 Criar Oferta no Estúdio
+          </button>
+        </div>
+      </div>
+
+      <!-- Grade de KPIs Financeiros em Tempo Real -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Faturamento Total do Pátio</span>
+          <div class="kpi-value" id="kpiRevenue">R$ 0,00</div>
+          <span class="kpi-meta" id="kpiCountVehicles">Calculando estoque disponível...</span>
+        </div>
+
+        <div class="kpi-card kpi-invested">
+          <span class="kpi-label">Capital Investido + Preparação</span>
+          <div class="kpi-value" id="kpiInvested">R$ 0,00</div>
+          <span class="kpi-meta" id="kpiCostsMeta">Aquisição + Revisões/Oficina</span>
+        </div>
+
+        <div class="kpi-card kpi-profit">
+          <span class="kpi-label">Lucro Líquido Projetado</span>
+          <div class="kpi-value" id="kpiProfit" style="color:#25D366;">R$ 0,00</div>
+          <span class="kpi-meta" id="kpiMarginMeta">Margem Média: 0.0%</span>
+        </div>
+
+        <div class="kpi-card kpi-leads">
+          <span class="kpi-label">Leads & Simulações Ativas</span>
+          <div class="kpi-value" id="kpiLeadsCount">0</div>
+          <span class="kpi-meta">Clientes em negociação</span>
+        </div>
+      </div>
+
+      <!-- Resumo Rápido de DRE do Estoque -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="font-family:var(--font-heading); font-size:1.35rem; color:#FFFFFF;">
+          DRE Sintético dos Veículos em Pátio
+        </h3>
+        <span style="font-size:0.82rem; color:#A1A1AA;">
+          Valores calculados em tempo real com base nos custos de aquisição e preparação
+        </span>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Veículo</th>
+              <th>Ano/Mod</th>
+              <th>Preço Sartec</th>
+              <th>Preço FIPE</th>
+              <th>Custo Aquisição + Prep</th>
+              <th>Lucro Projetado</th>
+              <th>Margem</th>
+              <th>Dias Pátio</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="dreTableBody">
+            <!-- Linhas geradas via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         ABA 2: GESTÃO DE ESTOQUE
+         ====================================================================== -->
+    <section id="tabStock" class="admin-tab-content" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:var(--font-heading); font-size:1.5rem; color:#FFFFFF; margin-bottom:4px;">
+            Inventário Oficial de Veículos
+          </h2>
+          <p style="color:#A1A1AA; font-size:0.85rem;">
+            Altere status, preços ou crie novos anúncios. Todas as alterações refletem na hora na vitrine pública.
+          </p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="adminStockSearch" class="form-control" placeholder="Buscar por modelo ou marca..." style="width:260px; padding:8px 14px; font-size:0.85rem;">
+          <button type="button" class="btn-primary" id="btnAdminAddCar2" style="font-size:0.82rem; font-weight:800;">
+            ➕ Cadastrar Novo Veículo
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Foto / Veículo</th>
+              <th>Versão</th>
+              <th>Ano</th>
+              <th>KM</th>
+              <th>Preço de Venda</th>
+              <th>Status na Loja</th>
+              <th>Procura</th>
+              <th style="text-align:right;">Ações Rápidas</th>
+            </tr>
+          </thead>
+          <tbody id="stockTableBody">
+            <!-- Preenchido dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         ABA 3: CRM KANBAN DE VENDAS & LEADS
+         ====================================================================== -->
+    <section id="tabKanban" class="admin-tab-content" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:var(--font-heading); font-size:1.5rem; color:#FFFFFF; margin-bottom:4px;">
+            Funil de Vendas & CRM de Leads da Região
+          </h2>
+          <p style="color:#A1A1AA; font-size:0.85rem;">
+            Acompanhe propostas recebidas pelo site, simulações de financiamento e avaliações de usados na troca.
+          </p>
+        </div>
+        <button type="button" class="btn-secondary" id="btnOpenNewLeadModal" style="padding:8px 14px; font-size:0.82rem; color:#FFF;">
+          ➕ Cadastrar Lead Manual
+        </button>
+      </div>
+
+      <!-- Quadro Kanban com 5 Colunas -->
+      <div class="kanban-board-wrapper">
+        
+        <!-- Coluna 1: Novas Simulações -->
+        <div class="kanban-col" data-status="novas_simulacoes">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">🔔 Novas Simulações</span>
+            <span class="badge-count" id="countColNovas">0</span>
+          </div>
+          <div class="kanban-cards-list" id="colNovasSimulacoes"></div>
+        </div>
+
+        <!-- Coluna 2: Propostas com Troca -->
+        <div class="kanban-col" data-status="proposta_troca">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">🚗 Propostas com Troca</span>
+            <span class="badge-count" id="countColTroca">0</span>
+          </div>
+          <div class="kanban-cards-list" id="colPropostasTroca"></div>
+        </div>
+
+        <!-- Coluna 3: Em Análise Bancária -->
+        <div class="kanban-col" data-status="analise_bancaria">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">🏦 Em Análise Bancária</span>
+            <span class="badge-count" id="countColAnalise">0</span>
+          </div>
+          <div class="kanban-cards-list" id="colAnaliseBancaria"></div>
+        </div>
+
+        <!-- Coluna 4: Visita Agendada -->
+        <div class="kanban-col" data-status="visita_agendada">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">📍 Visita no Pátio</span>
+            <span class="badge-count" id="countColVisita">0</span>
+          </div>
+          <div class="kanban-cards-list" id="colVisitaAgendada"></div>
+        </div>
+
+        <!-- Coluna 5: Vendido / Concluído -->
+        <div class="kanban-col" data-status="vendido">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">🤝 Vendas Fechadas</span>
+            <span class="badge-count" id="countColVendido">0</span>
+          </div>
+          <div class="kanban-cards-list" id="colVendidoConcluido"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         ABA 4: ESTÚDIO DE MARKETING AUTOMÁTICO
+         ====================================================================== -->
+    <section id="tabMarketing" class="admin-tab-content" style="display:none;">
+      <div style="margin-bottom:24px;">
+        <h2 style="font-family:var(--font-heading); font-size:1.5rem; color:#FFFFFF; margin-bottom:4px;">
+          Estúdio de Marketing Automático da Sartec Veículos
+        </h2>
+        <p style="color:#A1A1AA; font-size:0.85rem;">
+          Gere em segundos artes para Instagram Stories/WhatsApp Status (9:16), textos prontos para redes sociais e etiquetas de para-brisa A4 com QR Code.
+        </p>
+      </div>
+
+      <!-- Seletor do Veículo para o Estúdio -->
+      <div style="background:#111; padding:18px 24px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); margin-bottom:28px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:260px;">
+          <label class="form-label">Selecione o Veículo para Gerar os Materiais:</label>
+          <select id="marketingVehicleSelect" class="form-control" style="font-size:0.95rem; font-weight:700;">
+            <!-- Opções preenchidas dinamicamente -->
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Tema Visual do Story / Status:</label>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="trade-tab-btn active" data-story-theme="oferta">
+              🔥 Oferta Especial
+            </button>
+            <button type="button" class="trade-tab-btn" data-story-theme="novo">
+              🚘 Novo no Estoque
+            </button>
+            <button type="button" class="trade-tab-btn" data-story-theme="vendido">
+              🤝 VENDIDO!
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout do Estúdio: Prévia do Story 9:16 + Copywriting e Etiqueta -->
+      <div class="marketing-studio-grid">
+        
+        <!-- Coluna Esquerda: Mockup Visual do Story (9:16) -->
+        <div>
+          <div class="story-preview-container">
+            <div class="story-canvas-mockup" id="storyMockup" style="background-image: url('img/hero-bg.jpg');">
+              <div class="story-overlay"></div>
+              
+              <div class="story-content-layer">
+                <!-- Cabeçalho do Story -->
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <img src="https://sartecveiculos.com.br/wp-content/uploads/2025/07/Logo-Sartec-Veiculos-_fundo-transparente_-e1753331438782.webp" 
+                       alt="Sartec" style="height:28px; width:auto;">
+                  <span class="card-special-badge" id="storyThemeBadge">🔥 OFERTA ESPECIAL</span>
+                </div>
+
+                <!-- Rodapé do Story com Dados Reais -->
+                <div>
+                  <span style="color:var(--color-accent); font-weight:800; font-size:0.8rem; letter-spacing:0.5px;" id="storyBrand">CHEVROLET</span>
+                  <h3 style="font-family:var(--font-heading); font-size:1.35rem; color:#FFFFFF; margin:2px 0 6px;" id="storyTitle">Cruze LTZ 1.4 Turbo</h3>
+                  
+                  <div style="display:flex; gap:8px; font-size:0.75rem; color:#D1D1D6; margin-bottom:10px;">
+                    <span id="storyYear">Ano: 2019</span>
+                    <span>•</span>
+                    <span id="storyKm">96.000 km</span>
+                    <span>•</span>
+                    <span id="storyTrans">Automático</span>
+                  </div>
+
+                  <div style="background:rgba(0,0,0,0.85); padding:10px 14px; border-radius:10px; border:1px solid var(--color-accent); margin-bottom:12px;">
+                    <div style="font-size:0.7rem; color:#A1A1AA;">Preço Promocional Sartec:</div>
+                    <div style="font-family:var(--font-heading); font-size:1.6rem; color:var(--color-accent); font-weight:900;" id="storyPrice">R$ 92.900,00</div>
+                    <div style="font-size:0.72rem; color:#FFF;" id="storyInstallment">ou Entrada + 48x de R$ 1.340</div>
+                  </div>
+
+                  <div style="display:flex; align-items:center; justify-content:space-between; font-size:0.72rem; color:#E4E4E7;">
+                    <span>✓ 100% Periciado</span>
+                    <span style="color:#25D366; font-weight:700;">(44) 9 9148-4162</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align:center; margin-top:16px;">
+            <button type="button" class="btn-primary" id="btnDownloadStory" style="width:100%; justify-content:center;">
+              💾 Baixar Arte para Instagram / WhatsApp
+            </button>
+            <span style="font-size:0.75rem; color:#71717A; display:block; margin-top:6px;">Formato 9:16 vertical otimizado</span>
+          </div>
+        </div>
+
+        <!-- Coluna Direita: Copywriting Comercial e Etiqueta A4 -->
+        <div style="display:flex; flex-direction:column; gap:24px;">
+          
+          <!-- Gerador de Copy Comercial -->
+          <div style="background:#111; padding:22px; border-radius:14px; border:1px solid rgba(255,255,255,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <h4 style="font-family:var(--font-heading); font-size:1.15rem; color:#FFFFFF;">
+                📝 Copy Pronta para OLX, Instagram & Facebook Marketplace
+              </h4>
+              <button type="button" class="btn-secondary" id="btnCopyText" style="padding:6px 12px; font-size:0.78rem;">
+                📋 Copiar Texto Completo
+              </button>
+            </div>
+            
+            <textarea id="copyTextArea" class="form-control" rows="10" style="font-family:monospace; font-size:0.85rem; line-height:1.5; background:#080808;" readonly>
+Carregando copy do veículo...
+            </textarea>
+          </div>
+
+          <!-- Etiqueta de Para-brisa A4 com QR Code -->
+          <div style="background:#111; padding:22px; border-radius:14px; border:1px solid rgba(255,255,255,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div>
+                <h4 style="font-family:var(--font-heading); font-size:1.15rem; color:#FFFFFF;">
+                  🖨️ Etiqueta de Para-brisa A4 para o Pátio Físico
+                </h4>
+                <p style="color:#A1A1AA; font-size:0.8rem;">
+                  Gera folha pronta para colar no vidro do veículo com ficha completa e <strong>QR Code dinâmico</strong> apontando para o simulador online!
+                </p>
+              </div>
+              <button type="button" class="btn-primary" id="btnPrintSticker" style="padding:10px 18px; font-size:0.85rem;">
+                🖨️ Imprimir Etiqueta A4
+              </button>
+            </div>
+
+            <!-- Mini Preview da Etiqueta -->
+            <div style="background:#1A1A1A; padding:14px; border-radius:8px; display:flex; align-items:center; gap:20px;">
+              <div id="qrCodePreview" style="background:#FFF; padding:8px; border-radius:6px; width:90px; height:90px; display:flex; align-items:center; justify-content:center;">
+                <img id="qrCodeImg" src="" alt="QR Code" style="width:100%; height:100%;">
+              </div>
+              <div style="flex:1;">
+                <strong style="color:#FFF; display:block; font-size:0.95rem;" id="stickerPreviewTitle">Chevrolet Cruze LTZ 1.4 Turbo</strong>
+                <span style="color:#A1A1AA; font-size:0.8rem; display:block;" id="stickerPreviewSubtitle">Ano 2019 • 96.000 km • R$ 92.900,00</span>
+                <span style="color:var(--color-accent); font-size:0.75rem; margin-top:4px; display:block;">
+                  🔗 O QR Code direciona clientes no pátio físico direto para a simulação deste carro no celular.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         ABA 5: CONFIGURAÇÕES E RESET DE DEMO
+         ====================================================================== -->
+    <section id="tabSettings" class="admin-tab-content" style="display:none;">
+      <div style="max-width:700px; margin:0 auto; background:#111; padding:32px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);">
+        <h2 style="font-family:var(--font-heading); font-size:1.6rem; color:#FFFFFF; margin-bottom:6px;">
+          Configurações da Concessionária
+        </h2>
+        <p style="color:#A1A1AA; font-size:0.88rem; margin-bottom:24px;">
+          Dados institucionais da loja sincronizados em todas as páginas públicas e no simulador financeiro.
+        </p>
+
+        <form id="storeSettingsForm" style="display:flex; flex-direction:column; gap:16px;">
+          <div>
+            <label class="form-label">Nome Fantasia da Concessionária</label>
+            <input type="text" id="cfgDealershipName" class="form-control" value="Sartec Veículos">
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div>
+              <label class="form-label">WhatsApp Oficial (Com DDD)</label>
+              <input type="text" id="cfgPhone" class="form-control" value="(44) 9 9148-4162">
+            </div>
+            <div>
+              <label class="form-label">E-mail Comercial</label>
+              <input type="email" id="cfgEmail" class="form-control" value="contato@sartecveiculos.com.br">
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Endereço Comercial Completo</label>
+            <input type="text" id="cfgAddress" class="form-control" value="Avenida Espírito Santo, 114 (Cruzamento com Av. Paraná) – Centro, Planaltina do Paraná - PR">
+          </div>
+
+          <div>
+            <label class="form-label">Taxa Média de Financiamento Estimativa (% ao mês)</label>
+            <input type="number" id="cfgInterestRate" class="form-control" step="0.05" value="1.35">
+          </div>
+
+          <button type="submit" class="btn-primary" style="padding:12px; justify-content:center; margin-top:8px;">
+            Salvar Configurações
+          </button>
+        </form>
+
+        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin:32px 0;">
+
+        <!-- Botão de Restauração para a Demonstração -->
+        <div style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.3); padding:20px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; gap:20px;">
+          <div>
+            <strong style="color:#EF4444; font-size:0.95rem; display:block;">Restaurar Dados Originais da Apresentação</strong>
+            <span style="color:#A1A1AA; font-size:0.8rem;">
+              Reinicia o banco de dados do localStorage com os 6 veículos oficiais da Sartec e os 5 leads regionais de demonstração.
+            </span>
+          </div>
+          <button type="button" class="btn-secondary" id="btnResetDemoData" style="border-color:#EF4444; color:#EF4444; white-space:nowrap;">
+            🔄 Restaurar Demo Original
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       MODAL: CADASTRAR NOVO VEÍCULO EM 30 SEGUNDOS (COM IA E AUTO-PREENCHER)
+       ====================================================================== -->
+  <div class="quiz-modal-backdrop" id="modalAddVehicle" role="dialog" aria-modal="true" aria-labelledby="modalAddTitle">
+    <div class="quiz-modal-container" style="max-width:780px;">
+      <button type="button" class="quiz-close-btn" id="btnCloseAddVehicle">✕</button>
+      <span class="hero-badge-tag">Cadastro Rápido de Estoque</span>
+      <h3 style="font-family:var(--font-heading); font-size:1.6rem; color:#FFFFFF; margin:8px 0 16px;" id="modalAddTitle">
+        Cadastrar Novo Veículo em 30 Segundos
+      </h3>
+
+      <!-- Barra de Automação com 1 Clique -->
+      <div style="background:#181818; padding:14px; border-radius:10px; border:1px solid rgba(255,203,6,0.3); display:flex; gap:12px; margin-bottom:20px; align-items:center; flex-wrap:wrap;">
+        <button type="button" class="btn-primary" id="btnAutoFillFipe" style="font-size:0.82rem; padding:8px 16px;">
+          ⚡ Auto-Preencher Modelo & FIPE (Exemplo Rápido)
+        </button>
+        <button type="button" class="btn-secondary" id="btnGenerateAiCopy" style="font-size:0.82rem; padding:8px 16px; color:#FFF;">
+          ✨ Gerar Descrição Persuasiva com IA
+        </button>
+      </div>
+
+      <form id="formAddVehicle" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div>
+          <label class="form-label">Marca *</label>
+          <input type="text" id="addBrand" class="form-control" placeholder="Ex: CHEVROLET, TOYOTA, JEEP..." required>
+        </div>
+        <div>
+          <label class="form-label">Modelo *</label>
+          <input type="text" id="addModel" class="form-control" placeholder="Ex: Tracker Premier, Hilux, Corolla..." required>
+        </div>
+        <div>
+          <label class="form-label">Versão Completa</label>
+          <input type="text" id="addVersion" class="form-control" placeholder="Ex: 1.2 Turbo 12V Flex Aut.">
+        </div>
+        <div>
+          <label class="form-label">Ano Fabricação/Modelo *</label>
+          <input type="text" id="addYear" class="form-control" placeholder="Ex: 2021/2021" required>
+        </div>
+        <div>
+          <label class="form-label">Quilometragem (KM) *</label>
+          <input type="number" id="addKm" class="form-control" placeholder="Ex: 48000" required>
+        </div>
+        <div>
+          <label class="form-label">Preço de Venda Sartec (R$) *</label>
+          <input type="number" id="addPrice" class="form-control" placeholder="Ex: 89900" required>
+        </div>
+        <div>
+          <label class="form-label">Preço Tabela FIPE (R$)</label>
+          <input type="number" id="addFipe" class="form-control" placeholder="Ex: 93400">
+        </div>
+        <div>
+          <label class="form-label">Custo de Aquisição da Loja (R$)</label>
+          <input type="number" id="addCost" class="form-control" placeholder="Ex: 78000">
+        </div>
+        <div>
+          <label class="form-label">Gasto de Preparação / Oficina (R$)</label>
+          <input type="number" id="addPrep" class="form-control" placeholder="Ex: 1200">
+        </div>
+        <div>
+          <label class="form-label">Câmbio</label>
+          <select id="addTransmission" class="form-control">
+            <option value="Automático">Automático</option>
+            <option value="Manual">Manual</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Combustível</label>
+          <select id="addFuel" class="form-control">
+            <option value="Flex">Flex</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Gasolina">Gasolina</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Carroceria</label>
+          <select id="addCategory" class="form-control">
+            <option value="SUV">SUV</option>
+            <option value="Sedan">Sedan</option>
+            <option value="Picape">Picape</option>
+            <option value="Hatch">Hatch</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Cor</label>
+          <input type="text" id="addColor" class="form-control" placeholder="Ex: Branco Perolizado">
+        </div>
+        <div>
+          <label class="form-label">Selo Especial de Destaque</label>
+          <input type="text" id="addBadge" class="form-control" placeholder="Ex: R$ 3.500 Abaixo da FIPE">
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label class="form-label">URL da Imagem Principal</label>
+          <input type="url" id="addImageUrl" class="form-control" placeholder="https://..." value="https://sartecveiculos.com.br/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-06-at-6.37.21-PM-1.jpeg">
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label class="form-label">Descrição Vendedora / Resumo</label>
+          <textarea id="addSummary" class="form-control" rows="3" placeholder="Texto que destaca as qualidades e diferenciais do carro..."></textarea>
+        </div>
+
+        <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:12px; margin-top:10px;">
+          <button type="button" class="btn-secondary" id="btnCancelAddVehicle">Cancelar</button>
+          <button type="submit" class="btn-primary" style="padding:12px 28px;">Salvar e Publicar no Estoque</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: FICHA DE FINANCIAMENTO PARA BANCO (PROPOSTA PRONTA)
+       ====================================================================== -->
+  <div class="quiz-modal-backdrop" id="modalBankProposal" role="dialog" aria-modal="true" aria-labelledby="modalBankTitle">
+    <div class="quiz-modal-container" style="max-width:680px;">
+      <button type="button" class="quiz-close-btn" id="btnCloseBankProposal">✕</button>
+      <span class="hero-badge-tag">Correspondente Bancário</span>
+      <h3 style="font-family:var(--font-heading); font-size:1.5rem; color:#FFFFFF; margin:8px 0 16px;" id="modalBankTitle">
+        Ficha de Proposta para Análise Bancária
+      </h3>
+
+      <div style="background:#080808; padding:18px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); margin-bottom:18px;">
+        <pre id="bankProposalText" style="color:#FFF; font-family:monospace; font-size:0.85rem; line-height:1.5; white-space:pre-wrap; margin:0;"></pre>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <button type="button" class="btn-secondary" id="btnCopyBankProposal">
+          📋 Copiar Dados da Ficha
+        </button>
+        <button type="button" class="btn-card-whatsapp" id="btnSendBankProposalWa" style="padding:10px 20px;">
+          Enviar para Operador do Banco no WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       ETIQUETA A4 PRONTA PARA IMPRESSÃO EM TELA CHEIA (window.print())
+       ====================================================================== -->
+  <div id="printSheetContainer" style="display:none;">
+    <div class="print-a4-sheet" id="printSheetContent">
+      <!-- Conteúdo formatado injetado dinamicamente -->
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/vehicles-data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

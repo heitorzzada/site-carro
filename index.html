@@ -63,30 +63,39 @@
     </div>
   </div>
   <div class="site-topbar">
-    <div class="container topbar-inner">
-      <div class="topbar-info">
-        <span class="topbar-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div class="container topbar-inner" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div class="topbar-info" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+        <div class="topbar-badge-live">
+          <span class="live-pulse-dot"></span>
+          <span>Loja Aberta / Atendimento Online em Planaltina do PR • 100% dos Veículos Periciados</span>
+        </div>
+        <span class="topbar-item" style="color:#A1A1AA; font-size:0.78rem;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
             <circle cx="12" cy="10" r="3"></circle>
           </svg>
-          Avenida Espírito Santo, 114 — Planaltina do Paraná - PR
-        </span>
-        <span class="topbar-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          Seg a Sex: 08h às 18h | Sáb: 08h às 12h30
+          Av. Espírito Santo, 114 – Centro
         </span>
       </div>
 
-      <div>
-        <a href="https://wa.me/554491484162?text=Ol%C3%A1!%20Vim%20do%20site%20e%20gostaria%20de%20informa%C3%A7%C3%B5es" target="_blank" rel="noopener noreferrer" class="topbar-item" style="color:#FFFFFF; font-weight:700;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.2.662.589 1.221.771 1.394.858.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564c.173.087.289.13.332.202.043.073.043.419-.101.824z"/>
+      <div class="topbar-quick-actions">
+        <button type="button" class="topbar-btn" id="btnOpenFavorites" title="Ver veículos favoritados">
+          <span>❤️ Favoritos</span>
+          <span class="badge-count" id="topbarFavCount">0</span>
+        </button>
+        <button type="button" class="topbar-btn" id="btnOpenCompare" title="Comparar veículos lado a lado">
+          <span>⚖️ Comparar</span>
+          <span class="badge-count" id="topbarCompareCount">0</span>
+        </button>
+        <button type="button" class="topbar-btn" id="btnOpenQuiz" title="Descubra o carro ideal para o seu perfil">
+          <span>✨ Quiz Carro Ideal</span>
+        </button>
+        <a href="admin.html" class="topbar-btn btn-admin-highlight" title="Painel de Gestão e Demonstração da Concessionária">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
-          (44) 9 9148-4162
+          Área do Lojista (Painel Admin)
         </a>
       </div>
     </div>
@@ -438,25 +447,45 @@
 
     </div>
 
-    <!-- Barra Dock de Pesquisa Rápida Integrada -->
+    <!-- Super Busca Dupla (Abas Inteligentes: Modelo ou Parcela que Cabe no Bolso) -->
     <div class="hero-search-dock">
       <div class="container">
-        <div class="search-dock-panel">
+        <!-- Abas do Dock -->
+        <div class="hero-search-tabs" role="tablist">
+          <button type="button" class="search-tab-btn active" id="tabBtnSmartSearch" role="tab" aria-selected="true" aria-controls="panelSmartSearch">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            1. Busca Rápida no Estoque
+          </button>
+          <button type="button" class="search-tab-btn" id="tabBtnBudgetSearch" role="tab" aria-selected="false" aria-controls="panelBudgetSearch">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+              <line x1="6" y1="15" x2="6" y2="15.01"></line>
+            </svg>
+            2. Comprar pelo Valor da Parcela (Quanto cabe no seu bolso?)
+          </button>
+        </div>
+
+        <!-- Painel Aba 1: Busca Rápida -->
+        <div class="search-dock-panel search-tab-panel active" id="panelSmartSearch" role="tabpanel">
           <div class="dock-panel-title">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <div>
-              <strong>Pesquisa Rápida no Estoque</strong>
-              <span>Localize pelo modelo ou filtre pela marca desejada</span>
+              <strong>Pesquisa Rápida Inteligente</strong>
+              <span>Localize instantaneamente por modelo, marca ou categoria</span>
             </div>
           </div>
 
           <form id="heroQuickForm" class="dock-search-form">
             <div class="dock-field-keyword">
               <label class="sr-only" for="heroSearchInput" style="display:none;">Modelo ou Palavra-chave</label>
-              <input type="text" id="heroSearchInput" class="form-control" placeholder="Digite modelo ou versão (Ex: Corolla, S10, Cruze...)">
+              <input type="text" id="heroSearchInput" class="form-control" placeholder="Digite modelo ou versão (Ex: Cruze, Renegade, S10, Voyage...)">
             </div>
 
             <div class="dock-field-brand">
@@ -474,6 +503,42 @@
               Buscar no Estoque
             </button>
           </form>
+        </div>
+
+        <!-- Painel Aba 2: Comprar pelo Valor da Parcela -->
+        <div class="budget-search-box search-tab-panel" id="panelBudgetSearch" role="tabpanel">
+          <div class="budget-grid">
+            <div class="budget-slider-group">
+              <div class="budget-slider-header">
+                <label for="budgetInstallmentSlider">Quanto você quer pagar por mês?</label>
+                <span class="budget-val-display" id="budgetInstallmentDisplay">Até R$ 1.200 / mês</span>
+              </div>
+              <input type="range" id="budgetInstallmentSlider" class="budget-slider" min="500" max="3500" step="50" value="1200">
+              <div class="budget-match-count">
+                <span>⚡ Estimativa em 48x (taxa média bancos parceiros)</span>
+              </div>
+            </div>
+
+            <div class="budget-slider-group">
+              <div class="budget-slider-header">
+                <label for="budgetDownPaymentSlider">Quanto você tem de entrada?</label>
+                <span class="budget-val-display" id="budgetDownPaymentDisplay">R$ 20.000 de entrada</span>
+              </div>
+              <input type="range" id="budgetDownPaymentSlider" class="budget-slider" min="0" max="60000" step="2000" value="20000">
+              <div class="budget-match-count">
+                <span id="budgetMatchBadge">🎯 <strong id="budgetMatchCount">Carregando opções...</strong></span>
+              </div>
+            </div>
+
+            <div>
+              <button type="button" class="btn-budget-filter" id="btnApplyBudgetFilter">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                Ver Carros no Meu Bolso
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -803,6 +868,131 @@
   </div>
 
   <!-- ========================================================================
+       BANNER INTERATIVO: QUIZ DO CARRO IDEAL
+       ======================================================================== -->
+  <section class="container" aria-label="Descubra seu Carro Ideal">
+    <div class="quiz-section-banner">
+      <div class="quiz-banner-text">
+        <span class="hero-badge-tag" style="background:rgba(255,203,6,0.15); color:var(--color-accent); border-color:var(--color-accent);">
+          ✨ Recomendação Inteligente com IA
+        </span>
+        <h3>Não sabe qual carro escolher?</h3>
+        <p>
+          Responda a 3 perguntas rápidas e nosso sistema analisa o estoque em tempo real para encontrar os veículos que têm até <strong>98% de compatibilidade</strong> com o seu bolso e estilo de vida.
+        </p>
+      </div>
+      <div>
+        <button type="button" class="btn-open-quiz" id="btnBannerOpenQuiz">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          Iniciar Quiz (30 Segundos)
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SEÇÃO: USADO NA TROCA & RADAR CAÇADOR DE VEÍCULOS
+       ======================================================================== -->
+  <section class="trade-radar-section" id="avaliacao-troca">
+    <div class="container">
+      <div class="trade-card-container">
+        <div style="text-align:center; max-width:650px; margin:0 auto 24px;">
+          <span class="hero-badge-tag">Negociação Direta & Transparente</span>
+          <h2 style="font-family:var(--font-heading); font-size:1.85rem; color:#FFFFFF; margin-top:8px;">
+            Avaliação Justa do Seu Usado & Encomenda Sob Medida
+          </h2>
+          <p style="color:#A1A1AA; font-size:0.92rem;">
+            Aceitamos seu carro ou moto como entrada com valorização justa, ou encontramos o modelo exato que você procura no mercado.
+          </p>
+        </div>
+
+        <div class="trade-nav-tabs" style="justify-content:center;">
+          <button type="button" class="trade-tab-btn active" id="tabBtnTradeIn">
+            🚗 Avaliar Meu Carro na Troca
+          </button>
+          <button type="button" class="trade-tab-btn" id="tabBtnCarHunter">
+            🎯 Radar Caçador de Veículos (Não achou o modelo?)
+          </button>
+        </div>
+
+        <!-- Formulário 1: Usado na Troca -->
+        <form id="tradeInForm" class="trade-form-grid">
+          <div>
+            <label class="form-label">Marca e Modelo do seu Carro Atual *</label>
+            <input type="text" id="tradeCurrentCar" class="form-control" placeholder="Ex: Gol G6 1.0, HB20, Corolla..." required>
+          </div>
+          <div>
+            <label class="form-label">Ano Fabricação/Modelo *</label>
+            <input type="text" id="tradeYear" class="form-control" placeholder="Ex: 2017/2018" required>
+          </div>
+          <div>
+            <label class="form-label">Quilometragem Aproximada *</label>
+            <input type="text" id="tradeKm" class="form-control" placeholder="Ex: 75.000 km" required>
+          </div>
+          <div>
+            <label class="form-label">Qual veículo da Sartec você quer levar? *</label>
+            <select id="tradeTargetCar" class="form-control" required>
+              <option value="">Selecione o veículo desejado...</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Seu Nome Completo *</label>
+            <input type="text" id="tradeName" class="form-control" placeholder="Seu nome" required>
+          </div>
+          <div>
+            <label class="form-label">Sua Cidade *</label>
+            <input type="text" id="tradeCity" class="form-control" placeholder="Ex: Planaltina do PR, Paranavaí..." required>
+          </div>
+          <div class="trade-full-col" style="display:grid; grid-template-columns:1fr auto; gap:16px; align-items:end;">
+            <div>
+              <label class="form-label">Seu WhatsApp para Receber a Proposta *</label>
+              <input type="tel" id="tradePhone" class="form-control" placeholder="(44) 9 9999-9999" required>
+            </div>
+            <button type="submit" class="btn-card-whatsapp" style="padding:14px 28px; font-size:0.95rem; height:46px;">
+              Enviar Proposta de Troca no WhatsApp
+            </button>
+          </div>
+        </form>
+
+        <!-- Formulário 2: Radar Caçador -->
+        <form id="hunterForm" class="trade-form-grid" style="display:none;">
+          <div>
+            <label class="form-label">Modelo que você está procurando *</label>
+            <input type="text" id="hunterDesiredModel" class="form-control" placeholder="Ex: Civic 2020, Tracker, Ranger..." required>
+          </div>
+          <div>
+            <label class="form-label">Ano Mínimo Desejado</label>
+            <input type="text" id="hunterMinYear" class="form-control" placeholder="Ex: 2018">
+          </div>
+          <div>
+            <label class="form-label">Faixa de Preço Máxima</label>
+            <input type="text" id="hunterMaxPrice" class="form-control" placeholder="Ex: Até R$ 90.000">
+          </div>
+          <div>
+            <label class="form-label">Seu Nome Completo *</label>
+            <input type="text" id="hunterName" class="form-control" placeholder="Seu nome" required>
+          </div>
+          <div>
+            <label class="form-label">Sua Cidade *</label>
+            <input type="text" id="hunterCity" class="form-control" placeholder="Ex: Loanda, Paranavaí..." required>
+          </div>
+          <div>
+            <label class="form-label">Seu WhatsApp para Contato *</label>
+            <input type="tel" id="hunterPhone" class="form-control" placeholder="(44) 9 9999-9999" required>
+          </div>
+          <div class="trade-full-col" style="text-align:right;">
+            <button type="submit" class="btn-primary" style="padding:14px 28px; font-size:0.95rem;">
+              Ativar Radar Caçador de Veículos
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
        SEÇÃO: SOBRE A LOJA & LOCALIZAÇÃO CONFIRMADA
        ======================================================================== -->
   <section class="about-section" id="sobre">
@@ -1093,6 +1283,95 @@
         </svg>
       </a>
     </div>
+  <!-- ========================================================================
+       MODAL: QUIZ DO CARRO IDEAL (3 PERGUNTAS / 30 SEGUNDOS)
+       ======================================================================== -->
+  <div class="quiz-modal-backdrop" id="quizModal" role="dialog" aria-modal="true" aria-labelledby="quizModalTitle">
+    <div class="quiz-modal-container">
+      <button type="button" class="quiz-close-btn" id="btnQuizClose" aria-label="Fechar Quiz">✕</button>
+      
+      <div id="quizStepContainer">
+        <!-- Barra de Progresso -->
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="quizProgressFill"></div>
+        </div>
+
+        <span class="hero-badge-tag" id="quizStepBadge">Pergunta 1 de 3</span>
+        <h3 class="quiz-step-title" id="quizQuestionTitle">Qual o seu objetivo principal com o veículo?</h3>
+
+        <div class="quiz-options-grid" id="quizOptionsList">
+          <!-- Gerado via JavaScript -->
+        </div>
+      </div>
+
+      <!-- Container de Resultados do Quiz -->
+      <div id="quizResultContainer" style="display:none; text-align:center;">
+        <span class="quiz-result-match-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          98% Match Encontrado para o Seu Perfil!
+        </span>
+        <h3 style="font-family:var(--font-heading); font-size:1.6rem; color:#FFFFFF; margin-bottom:8px;">
+          Estes são os carros perfeitos para você na Sartec:
+        </h3>
+        <p style="color:#A1A1AA; font-size:0.9rem; margin-bottom:20px;">
+          Selecionamos as melhores opções do nosso estoque de acordo com seu orçamento e prioridades.
+        </p>
+
+        <div id="quizMatchedVehiclesGrid" style="display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:20px;">
+          <!-- Cards recomendados inseridos aqui -->
+        </div>
+
+        <button type="button" class="btn-secondary" id="btnRestartQuiz" style="margin:0 auto;">
+          ↺ Fazer o Quiz Novamente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: COMPARADOR LADO A LADO (ATÉ 3 VEÍCULOS)
+       ======================================================================== -->
+  <div class="quiz-modal-backdrop" id="compareModal" role="dialog" aria-modal="true" aria-labelledby="compareModalTitle">
+    <div class="quiz-modal-container" style="max-width:920px;">
+      <button type="button" class="quiz-close-btn" id="btnCompareClose" aria-label="Fechar Comparador">✕</button>
+      <span class="hero-badge-tag">⚖️ Ferramenta de Decisão</span>
+      <h3 style="font-family:var(--font-heading); font-size:1.6rem; color:#FFFFFF; margin:8px 0 16px;" id="compareModalTitle">
+        Comparativo Lado a Lado
+      </h3>
+      <div id="compareContentWrapper">
+        <!-- Tabela comparativa gerada dinamicamente via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: FAVORITOS SALVOS
+       ======================================================================== -->
+  <div class="quiz-modal-backdrop" id="favoritesModal" role="dialog" aria-modal="true" aria-labelledby="favModalTitle">
+    <div class="quiz-modal-container" style="max-width:650px;">
+      <button type="button" class="quiz-close-btn" id="btnFavoritesClose" aria-label="Fechar Favoritos">✕</button>
+      <span class="hero-badge-tag">❤️ Seus Veículos Salvos</span>
+      <h3 style="font-family:var(--font-heading); font-size:1.5rem; color:#FFFFFF; margin:8px 0 16px;" id="favModalTitle">
+        Veículos que você favoritou
+      </h3>
+      <div id="favoritesListWrapper" style="display:flex; flex-direction:column; gap:12px;">
+        <!-- Lista gerada dinamicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       PROVA SOCIAL REGIONAL FLUTUANTE (NOTIFICAÇÃO TOAST)
+       ======================================================================== -->
+  <aside class="social-proof-toast" id="socialProofToast" aria-live="polite">
+    <div class="toast-avatar" id="toastAvatar">📍</div>
+    <div class="toast-content">
+      <div class="toast-title" id="toastTitle">Carlos de Paranavaí - PR</div>
+      <div class="toast-desc" id="toastDesc">Acabou de simular financiamento do Jeep Renegade</div>
+    </div>
+    <button type="button" class="toast-close-btn" id="btnDismissToast" aria-label="Fechar notificação">✕</button>
   </aside>
 
   <!-- Scripts -->

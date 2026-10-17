@@ -1,15 +1,30 @@
 /**
- * SARTEC VEÍCULOS — APLICAÇÃO E SISTEMA DE ESTOQUE
- * Filtros em tempo real, sincronização com URL, paginação, cards otimizados,
- * modal de detalhes com veículos relacionados e integração direta com WhatsApp.
+ * SARTEC VEÍCULOS — SISTEMA PRINCIPAL DA VITRINE E CONVERSÃO (app.js)
+ * Conexão com SARTEC_STORE (localStorage), Super Busca Dupla, Quiz do Carro Ideal,
+ * Comparador Lado a Lado, Favoritos, Prova Social Regional e Leads de Troca.
  */
 
 (function () {
   'use strict';
 
+  // Obter repositório de dados persistente
+  const store = window.SARTEC_STORE || {
+    getVehicles: () => window.SARTEC_VEHICLES || [],
+    getFavorites: () => [],
+    toggleFavorite: () => false,
+    isFavorite: () => false,
+    getCompareList: () => [],
+    toggleCompare: () => false,
+    isComparing: () => false,
+    addLead: () => {},
+    formatCurrency: val => `R$ ${Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+    formatKm: val => `${Number(val).toLocaleString('pt-BR')} km`,
+    calculateInstallment: (p, d, m) => Math.round(((p - d) * 1.35) / m)
+  };
+
   // Estado da Aplicação
   const state = {
-    vehicles: window.SARTEC_VEHICLES || [],
+    vehicles: store.getVehicles(),
     config: window.SARTEC_CONFIG || {},
     filters: {
       search: '',
@@ -22,19 +37,33 @@
       maxKm: '',
       transmission: '',
       fuel: '',
-      category: ''
+      category: '',
+      maxBudgetInstallment: null,
+      budgetDownPayment: 20000
     },
     sortBy: 'default',
     currentPage: 1,
     itemsPerPage: 9,
-    activeVehicle: null
+    activeVehicle: null,
+    quizStep: 1,
+    quizAnswers: {
+      objective: null,
+      maxInstallment: null,
+      transmission: null
+    }
   };
 
   // Cache de Elementos do DOM
   const dom = {
-    // Header & Mobile
+    // Header & Topbar
     mobileToggle: document.getElementById('mobileToggle'),
     mobileNavPanel: document.getElementById('mobileNavPanel'),
+    topbarFavCount: document.getElementById('topbarFavCount'),
+    topbarCompareCount: document.getElementById('topbarCompareCount'),
+    btnOpenFavorites: document.getElementById('btnOpenFavorites'),
+    btnOpenCompare: document.getElementById('btnOpenCompare'),
+    btnOpenQuiz: document.getElementById('btnOpenQuiz'),
+    btnBannerOpenQuiz: document.getElementById('btnBannerOpenQuiz'),
 
     // Hero & Carrossel Comercial
     heroSearchInput: document.getElementById('heroSearchInput'),
@@ -45,6 +74,18 @@
     heroNextBtn: document.getElementById('heroNextBtn'),
     heroDots: document.getElementById('heroDots'),
     heroContainer: document.querySelector('.hero-carousel-container'),
+
+    // Super Busca Dupla (Abas)
+    tabBtnSmartSearch: document.getElementById('tabBtnSmartSearch'),
+    tabBtnBudgetSearch: document.getElementById('tabBtnBudgetSearch'),
+    panelSmartSearch: document.getElementById('panelSmartSearch'),
+    panelBudgetSearch: document.getElementById('panelBudgetSearch'),
+    budgetInstallmentSlider: document.getElementById('budgetInstallmentSlider'),
+    budgetInstallmentDisplay: document.getElementById('budgetInstallmentDisplay'),
+    budgetDownPaymentSlider: document.getElementById('budgetDownPaymentSlider'),
+    budgetDownPaymentDisplay: document.getElementById('budgetDownPaymentDisplay'),
+    budgetMatchCount: document.getElementById('budgetMatchCount'),
+    btnApplyBudgetFilter: document.getElementById('btnApplyBudgetFilter'),
 
     // Vitrine de Veículos em Destaque
     featuredGrid: document.getElementById('featuredGrid'),
@@ -88,7 +129,7 @@
     mFilterMaxPrice: document.getElementById('mFilterMaxPrice'),
     mFilterMaxKm: document.getElementById('mFilterMaxKm'),
 
-    // Modal de Detalhes
+    // Modal de Detalhes Rápido
     modalBackdrop: document.getElementById('vehicleModal'),
     modalCloseBtn: document.getElementById('modalCloseBtn'),
     modalFullDetailsBtn: document.getElementById('modalFullDetailsBtn'),
@@ -108,156 +149,94 @@
     modalSpecDoors: document.getElementById('modalSpecDoors'),
     modalFeaturesList: document.getElementById('modalFeaturesList'),
     modalWhatsappBtn: document.getElementById('modalWhatsappBtn'),
-    modalRelatedGrid: document.getElementById('modalRelatedGrid')
+    modalRelatedGrid: document.getElementById('modalRelatedGrid'),
+
+    // Modais Interativos: Quiz, Comparar, Favoritos e Toast
+    quizModal: document.getElementById('quizModal'),
+    btnQuizClose: document.getElementById('btnQuizClose'),
+    quizStepContainer: document.getElementById('quizStepContainer'),
+    quizResultContainer: document.getElementById('quizResultContainer'),
+    quizProgressFill: document.getElementById('quizProgressFill'),
+    quizStepBadge: document.getElementById('quizStepBadge'),
+    quizQuestionTitle: document.getElementById('quizQuestionTitle'),
+    quizOptionsList: document.getElementById('quizOptionsList'),
+    quizMatchedVehiclesGrid: document.getElementById('quizMatchedVehiclesGrid'),
+    btnRestartQuiz: document.getElementById('btnRestartQuiz'),
+
+    compareModal: document.getElementById('compareModal'),
+    btnCompareClose: document.getElementById('btnCompareClose'),
+    compareContentWrapper: document.getElementById('compareContentWrapper'),
+
+    favoritesModal: document.getElementById('favoritesModal'),
+    btnFavoritesClose: document.getElementById('btnFavoritesClose'),
+    favoritesListWrapper: document.getElementById('favoritesListWrapper'),
+
+    socialProofToast: document.getElementById('socialProofToast'),
+    toastAvatar: document.getElementById('toastAvatar'),
+    toastTitle: document.getElementById('toastTitle'),
+    toastDesc: document.getElementById('toastDesc'),
+    btnDismissToast: document.getElementById('btnDismissToast'),
+
+    // Seção de Troca & Radar
+    tabBtnTradeIn: document.getElementById('tabBtnTradeIn'),
+    tabBtnCarHunter: document.getElementById('tabBtnCarHunter'),
+    tradeInForm: document.getElementById('tradeInForm'),
+    hunterForm: document.getElementById('hunterForm'),
+    tradeTargetCar: document.getElementById('tradeTargetCar')
   };
 
   // Helper para URL do WhatsApp oficial padronizada
   function buildWhatsAppUrl(car) {
-    const phone = state.config.phoneRaw || '554491484162';
+    const phone = '5544991484162';
     if (!car) {
-      const generalText = 'Olá! Gostaria de consultar informações sobre os veículos disponíveis no estoque da Sartec Veículos.';
+      const generalText = 'Olá! Gostaria de consultar informações sobre os veículos disponíveis no estoque da Sartec Veículos em Planaltina do Paraná.';
       return `https://wa.me/${phone}?text=${encodeURIComponent(generalText)}`;
     }
-    const message = `Olá! Tenho interesse no veículo ${car.brand} ${car.model}, ano ${car.year}, anunciado por ${car.priceFormatted}. Gostaria de receber mais informações.`;
+    const message = `Olá! Gostaria de simular financiamento e obter mais detalhes do ${car.brand} ${car.model} (${car.yearModel || car.year}), anunciado por ${car.priceFormatted || store.formatCurrency(car.price)} na Sartec Veículos.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
-  // Sincronização de Filtros com Parâmetros da URL
-  function loadFiltersFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('busca')) state.filters.search = params.get('busca');
-    if (params.has('marca')) state.filters.brand = params.get('marca');
-    if (params.has('carroceria')) state.filters.category = params.get('carroceria');
-    if (params.has('cambio')) state.filters.transmission = params.get('cambio');
-    if (params.has('combustivel')) state.filters.fuel = params.get('combustivel');
-    if (params.has('ano_min')) state.filters.minYear = params.get('ano_min');
-    if (params.has('ano_max')) state.filters.maxYear = params.get('ano_max');
-    if (params.has('preco_min')) state.filters.minPrice = params.get('preco_min');
-    if (params.has('preco_max')) state.filters.maxPrice = params.get('preco_max');
-    if (params.has('km_max')) state.filters.maxKm = params.get('km_max');
-    if (params.has('ordenar')) state.sortBy = params.get('ordenar');
-    if (params.has('pagina')) state.currentPage = parseInt(params.get('pagina'), 10) || 1;
-
-    syncFormControlsWithState();
-  }
-
-  function updateURL() {
-    const params = new URLSearchParams();
-    if (state.filters.search) params.set('busca', state.filters.search);
-    if (state.filters.brand) params.set('marca', state.filters.brand);
-    if (state.filters.transmission) params.set('cambio', state.filters.transmission);
-    if (state.filters.minYear) params.set('ano_min', state.filters.minYear);
-    if (state.filters.maxYear) params.set('ano_max', state.filters.maxYear);
-    if (state.filters.minPrice) params.set('preco_min', state.filters.minPrice);
-    if (state.filters.maxPrice) params.set('preco_max', state.filters.maxPrice);
-    if (state.sortBy !== 'default') params.set('ordenar', state.sortBy);
-    if (state.currentPage > 1) params.set('pagina', state.currentPage);
-
-    const query = params.toString();
-    const newRelativePathQuery = window.location.pathname + (query ? '?' + query : '');
-    window.history.replaceState(null, '', newRelativePathQuery);
-  }
-
-  function syncFormControlsWithState() {
-    // Desktop
-    if (dom.filterSearch) dom.filterSearch.value = state.filters.search;
-    if (dom.filterBrand) dom.filterBrand.value = state.filters.brand;
-    if (dom.filterCategory) dom.filterCategory.value = state.filters.category;
-    if (dom.filterTransmission) dom.filterTransmission.value = state.filters.transmission;
-    if (dom.filterFuel) dom.filterFuel.value = state.filters.fuel;
-    if (dom.filterMinYear) dom.filterMinYear.value = state.filters.minYear;
-    if (dom.filterMaxYear) dom.filterMaxYear.value = state.filters.maxYear;
-    if (dom.filterMinPrice) dom.filterMinPrice.value = state.filters.minPrice;
-    if (dom.filterMaxPrice) dom.filterMaxPrice.value = state.filters.maxPrice;
-    if (dom.filterMaxKm) dom.filterMaxKm.value = state.filters.maxKm;
-    if (dom.sortSelect) dom.sortSelect.value = state.sortBy;
-
-    // Mobile Drawer
-    if (dom.mFilterSearch) dom.mFilterSearch.value = state.filters.search;
-    if (dom.mFilterBrand) dom.mFilterBrand.value = state.filters.brand;
-    if (dom.mFilterCategory) dom.mFilterCategory.value = state.filters.category;
-    if (dom.mFilterTransmission) dom.mFilterTransmission.value = state.filters.transmission;
-    if (dom.mFilterFuel) dom.mFilterFuel.value = state.filters.fuel;
-    if (dom.mFilterMinYear) dom.mFilterMinYear.value = state.filters.minYear;
-    if (dom.mFilterMaxYear) dom.mFilterMaxYear.value = state.filters.maxYear;
-    if (dom.mFilterMinPrice) dom.mFilterMinPrice.value = state.filters.minPrice;
-    if (dom.mFilterMaxPrice) dom.mFilterMaxPrice.value = state.filters.maxPrice;
-    if (dom.mFilterMaxKm) dom.mFilterMaxKm.value = state.filters.maxKm;
-  }
-
   // ==========================================================================
-  // CARROSSEL COMERCIAL DO HERO (SEÇÃO 4 DO BRIEFING)
+  // CARROSSEL COMERCIAL DO HERO
   // ==========================================================================
   function initHeroCarousel() {
     const track = dom.heroTrack;
     if (!track) return;
-
-    const slides = track.querySelectorAll('.hero-slide');
-    if (!slides || slides.length === 0) return;
-
+    const slides = Array.from(track.querySelectorAll('.hero-slide'));
+    const dots = dom.heroDots ? Array.from(dom.heroDots.querySelectorAll('.hero-dot')) : [];
     const prevBtn = dom.heroPrevBtn;
     const nextBtn = dom.heroNextBtn;
-    const dotsContainer = dom.heroDots;
     const container = dom.heroContainer;
+
+    if (slides.length === 0) return;
 
     let currentIndex = 0;
     let autoTimer = null;
-    const slideCount = slides.length;
-    const AUTO_INTERVAL = 6500; // 6.5 segundos para leitura confortável e sem pressa
-
-    // Geração dinâmica dos dots de paginação
-    if (dotsContainer) {
-      dotsContainer.innerHTML = '';
-      for (let i = 0; i < slideCount; i++) {
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.className = `hero-dot ${i === 0 ? 'active' : ''}`;
-        dot.setAttribute('aria-label', `Ir para o slide ${i + 1} de ${slideCount}`);
-        dot.setAttribute('data-slide-index', i);
-        dot.addEventListener('click', () => {
-          goToSlide(i);
-          restartTimer();
-        });
-        dotsContainer.appendChild(dot);
-      }
-    }
-
-    function updateDots() {
-      if (!dotsContainer) return;
-      const dots = dotsContainer.querySelectorAll('.hero-dot');
-      dots.forEach((dot, idx) => {
-        dot.classList.toggle('active', idx === currentIndex);
-        dot.setAttribute('aria-current', idx === currentIndex ? 'true' : 'false');
-      });
-    }
+    const AUTO_INTERVAL = 6500;
 
     function goToSlide(index) {
-      if (index < 0) {
-        currentIndex = slideCount - 1;
-      } else if (index >= slideCount) {
-        currentIndex = 0;
-      } else {
-        currentIndex = index;
-      }
-      track.style.transform = `translateX(-${currentIndex * 100}%)`;
-      slides.forEach((s, idx) => {
-        s.classList.toggle('active', idx === currentIndex);
+      if (index < 0) index = slides.length - 1;
+      if (index >= slides.length) index = 0;
+      currentIndex = index;
+
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === currentIndex);
       });
-      updateDots();
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentIndex);
+        dot.setAttribute('aria-selected', i === currentIndex ? 'true' : 'false');
+      });
     }
 
     function nextSlide() {
       goToSlide(currentIndex + 1);
     }
-
     function prevSlide() {
       goToSlide(currentIndex - 1);
     }
 
     function startTimer() {
-      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return;
-      }
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       stopTimer();
       autoTimer = setInterval(nextSlide, AUTO_INTERVAL);
     }
@@ -280,7 +259,6 @@
         restartTimer();
       });
     }
-
     if (nextBtn) {
       nextBtn.addEventListener('click', () => {
         nextSlide();
@@ -293,218 +271,294 @@
       container.addEventListener('mouseleave', startTimer);
       container.addEventListener('focusin', stopTimer);
       container.addEventListener('focusout', startTimer);
-
-      let touchStartX = 0;
-      let touchEndX = 0;
-
-      container.addEventListener('touchstart', (e) => {
-        stopTimer();
-        touchStartX = e.changedTouches[0].screenX;
-      }, { passive: true });
-
-      container.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        const diff = touchEndX - touchStartX;
-        if (Math.abs(diff) > 40) {
-          if (diff < 0) {
-            nextSlide();
-          } else {
-            prevSlide();
-          }
-        }
-        startTimer();
-      }, { passive: true });
-
-      container.setAttribute('tabindex', '0');
-      container.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          prevSlide();
-          restartTimer();
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          nextSlide();
-          restartTimer();
-        }
-      });
     }
+
+    dots.forEach((dot, idx) => {
+      dot.addEventListener('click', () => {
+        goToSlide(idx);
+        restartTimer();
+      });
+    });
 
     goToSlide(0);
     startTimer();
   }
 
   // ==========================================================================
-  // VITRINE DE VEÍCULOS EM DESTAQUE (SEÇÃO 5 DO BRIEFING)
+  // RENDERIZAÇÃO DE CARD DE VEÍCULO DE ALTA CONVERSÃO
+  // ==========================================================================
+  function generateVehicleCardHtml(car) {
+    const isFav = store.isFavorite(car.id);
+    const isComp = store.isComparing(car.id);
+    const waUrl = buildWhatsAppUrl(car);
+
+    // Estimativa de parcela mensal em 48x (entrada de 20%)
+    const downPayment = Math.round(car.price * 0.25);
+    const monthlyEst = store.calculateInstallment(car.price, downPayment, 48, 1.35);
+
+    // Badges
+    const statusClass = car.status === 'vendido' ? 'status-vendido' : (car.status === 'reservado' ? 'status-reservado' : 'status-disponivel');
+    const statusLabel = car.status === 'vendido' ? 'Vendido' : (car.status === 'reservado' ? 'Reservado' : 'Disponível');
+    const specialBadge = car.specialBadge || (car.price < (car.fipePrice || 0) ? `R$ ${(car.fipePrice - car.price).toLocaleString('pt-BR')} Abaixo da FIPE` : 'Periciado com Garantia');
+
+    // Comparativo FIPE
+    const showFipe = car.fipePrice && car.fipePrice > car.price;
+    const fipeHtml = showFipe
+      ? `<div class="card-fipe-compare"><del>FIPE: ${store.formatCurrency(car.fipePrice)}</del><span class="card-fipe-discount">Economia de ${store.formatCurrency(car.fipePrice - car.price)}</span></div>`
+      : `<div class="card-fipe-compare" style="color:#25D366; font-weight:600;">✓ Laudo Cautelar 100% Aprovado</div>`;
+
+    const imageSrc = (car.images && car.images[0]) ? car.images[0] : 'img/hero-bg.jpg';
+    const viewsCount = car.viewsToday || Math.floor(25 + (car.price % 35));
+
+    return `
+      <article class="vehicle-card" data-id="${car.id}">
+        <div class="card-media-wrapper">
+          <span class="card-status-badge ${statusClass}">${statusLabel}</span>
+          <span class="card-special-badge">${specialBadge}</span>
+          
+          <img class="card-vehicle-img" 
+               src="${imageSrc}" 
+               alt="${car.fullName || car.brand + ' ' + car.model}" 
+               loading="lazy" 
+               onerror="this.onerror=null; this.src='img/hero-bg.jpg';">
+
+          <div class="card-micro-proof">
+            <span>🔥 ${viewsCount} pessoas viram hoje</span>
+          </div>
+
+          <div class="card-quick-actions">
+            <button type="button" class="btn-card-icon ${isFav ? 'active' : ''}" data-action="favorite" data-id="${car.id}" title="${isFav ? 'Remover dos Favoritos' : 'Favoritar este carro'}">
+              ❤️
+            </button>
+            <button type="button" class="btn-card-icon ${isComp ? 'comparing' : ''}" data-action="compare" data-id="${car.id}" title="${isComp ? 'Remover da comparação' : 'Comparar lado a lado'}">
+              ⚖️
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body-content">
+          <div class="card-header-meta">
+            <span class="card-brand-tag">${car.brand}</span>
+            <span class="card-category-tag">${car.category} • ${car.color || 'Prata'}</span>
+          </div>
+
+          <h3 class="card-car-title">
+            <a href="veiculo.html?id=${car.id}" style="color:inherit; text-decoration:none;">${car.model}</a>
+          </h3>
+          <p class="card-car-version" title="${car.version || ''}">${car.version || car.fullName || ''}</p>
+
+          <div class="card-specs-row">
+            <div class="card-spec-item">
+              <span class="spec-label">Ano</span>
+              <span class="spec-val">${car.yearModel || car.year}</span>
+            </div>
+            <div class="card-spec-item">
+              <span class="spec-label">KM</span>
+              <span class="spec-val">${car.kmFormatted || store.formatKm(car.km)}</span>
+            </div>
+            <div class="card-spec-item">
+              <span class="spec-label">Câmbio</span>
+              <span class="spec-val">${car.transmission}</span>
+            </div>
+          </div>
+
+          <div class="card-pricing-block">
+            ${fipeHtml}
+            <div class="card-main-price">${car.priceFormatted || store.formatCurrency(car.price)}</div>
+            <div class="card-installment-estimate">
+              ou Entrada + <strong>48x de ${store.formatCurrency(monthlyEst)}</strong>
+            </div>
+          </div>
+
+          <div class="card-actions-grid">
+            <a href="veiculo.html?id=${car.id}" class="btn-card-details">
+              Ver Detalhes & Simular
+            </a>
+            <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn-card-whatsapp">
+              Simular no WhatsApp
+            </a>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  // ==========================================================================
+  // VITRINE DE VEÍCULOS EM DESTAQUE (4 VEÍCULOS PRINCIPAIS)
   // ==========================================================================
   function renderFeaturedVehicles() {
     if (!dom.featuredGrid) return;
+    const all = store.getVehicles();
+    // Prioriza Cruze LTZ 2019, Renegade 2018, S10 Diesel 2005 e Voyage 1.6 MSI 2016
+    const priorityIds = ['car-cruze-ltz-2019', 'car-renegade-long-2018', 'car-s10-diesel-2005', 'car-voyage-16-2016'];
+    let featured = [];
 
-    let featuredList = [];
-    if (typeof window.getFeaturedVehicles === 'function') {
-      featuredList = window.getFeaturedVehicles(4);
+    priorityIds.forEach(id => {
+      const v = all.find(c => c.id === id);
+      if (v) featured.push(v);
+    });
+
+    if (featured.length < 4) {
+      all.forEach(v => {
+        if (!featured.find(f => f.id === v.id) && featured.length < 4) {
+          featured.push(v);
+        }
+      });
     }
-    if (!featuredList || featuredList.length === 0) {
-      const topIds = ['car-8451', 'car-8453', 'car-8456', 'car-8450'];
-      featuredList = topIds.map(id => state.vehicles.find(v => v.id === id)).filter(Boolean);
-      if (featuredList.length < 4) {
-        featuredList = state.vehicles.slice(0, 4);
-      }
-    }
 
-    dom.featuredGrid.innerHTML = featuredList.map(car => {
-      const waUrl = buildWhatsAppUrl(car);
-      return `
-        <article class="vehicle-card" data-id="${car.id}">
-          <a href="veiculo.html?id=${car.id}" class="card-image-box" title="Ver detalhes de ${car.brand} ${car.model}">
-            <span class="card-category-badge">${car.category}</span>
-            <img class="card-image" 
-                 src="${car.images[0]}" 
-                 alt="${car.brand} ${car.model} ${car.year}"
-                 loading="lazy"
-                 width="400"
-                 height="250"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80';">
-          </a>
+    dom.featuredGrid.innerHTML = featured.map(car => generateVehicleCardHtml(car)).join('');
+    bindCardInteractions(dom.featuredGrid);
+  }
 
-          <div class="card-content">
-            <div class="card-header-info">
-              <span class="card-brand">${car.brand}</span>
-              <h3 class="card-title">
-                <a href="veiculo.html?id=${car.id}" style="color:inherit;">${car.brand} ${car.model}</a>
-              </h3>
-              <p class="card-version" title="${car.version || car.fullName}">${car.version || car.model}</p>
-            </div>
+  // ==========================================================================
+  // ATIVAÇÃO DE CLICKS E INTERAÇÕES NOS CARDS
+  // ==========================================================================
+  function bindCardInteractions(containerEl) {
+    if (!containerEl) return;
 
-            <div class="card-price-box">
-              <span class="card-price-label">Preço anunciado</span>
-              <div class="card-price-value">${car.priceFormatted}</div>
-            </div>
-
-            <div class="card-specs-row">
-              <div class="card-spec-item">
-                <span class="spec-name">Ano</span>
-                <span class="spec-value">${car.year}</span>
-              </div>
-              <div class="card-spec-item">
-                <span class="spec-name">KM</span>
-                <span class="spec-value">${car.kmFormatted}</span>
-              </div>
-              <div class="card-spec-item">
-                <span class="spec-name">Câmbio</span>
-                <span class="spec-value">${car.transmission}</span>
-              </div>
-            </div>
-
-            <div class="card-buttons">
-              <a href="veiculo.html?id=${car.id}" class="btn-card-details" title="Acessar página completa de ${car.brand} ${car.model}">
-                Ver Detalhes
-              </a>
-              <button type="button" class="btn-card-quickview" data-quickview-id="${car.id}" aria-label="Visualização rápida de ${car.brand} ${car.model}" title="Visualização rápida">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                Espiar
-              </button>
-              <a href="${waUrl}" 
-                 target="_blank" 
-                 rel="noopener noreferrer" 
-                 class="btn-card-whatsapp"
-                 title="Negociar pelo WhatsApp">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.2.662.589 1.221.771 1.394.858.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564c.173.087.289.13.332.202.043.073.043.419-.101.824z"/>
-                </svg>
-                WhatsApp
-              </a>
-            </div>
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    dom.featuredGrid.querySelectorAll('.btn-card-quickview').forEach(btn => {
+    // Favoritar
+    containerEl.querySelectorAll('[data-action="favorite"]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const carId = btn.dataset.quickviewId;
-        if (carId) openVehicleModal(carId);
+        e.preventDefault();
+        const id = btn.dataset.id;
+        const added = store.toggleFavorite(id);
+        btn.classList.toggle('active', added);
+        updateTopCounters();
       });
     });
 
-    dom.featuredGrid.querySelectorAll('.vehicle-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.btn-card-whatsapp') || e.target.closest('.btn-card-quickview')) return;
-        if (!e.target.closest('a')) {
-          const carId = card.dataset.id;
-          if (carId) window.location.href = `veiculo.html?id=${carId}`;
+    // Comparar
+    containerEl.querySelectorAll('[data-action="compare"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const id = btn.dataset.id;
+        const added = store.toggleCompare(id);
+        btn.classList.toggle('comparing', added);
+        updateTopCounters();
+        if (added) {
+          openCompareModal();
         }
       });
     });
   }
 
-  // Preenchimento Dinâmico de Opções dos Filtros
-  function populateFilterOptions() {
-    const brands = [...new Set(state.vehicles.map(v => v.brand))].sort();
-    const categories = [...new Set(state.vehicles.map(v => v.category))].sort();
-    const years = [...new Set(state.vehicles.map(v => v.year))].sort((a, b) => b - a);
+  function updateTopCounters() {
+    const favs = store.getFavorites();
+    const comps = store.getCompareList();
+    if (dom.topbarFavCount) dom.topbarFavCount.textContent = favs.length;
+    if (dom.topbarCompareCount) dom.topbarCompareCount.textContent = comps.length;
+  }
 
-    // Marca
-    const brandOptions = `<option value="">Todas as Marcas</option>` +
-      brands.map(b => `<option value="${b}">${b}</option>`).join('');
-    if (dom.filterBrand) dom.filterBrand.innerHTML = brandOptions;
-    if (dom.heroBrandSelect) dom.heroBrandSelect.innerHTML = brandOptions;
-    if (dom.mFilterBrand) dom.mFilterBrand.innerHTML = brandOptions;
+  // ==========================================================================
+  // SUPER BUSCA DUPLA: ABA 1 E ABA 2 (PARCELA DO BOLSO)
+  // ==========================================================================
+  function initDualSearchTabs() {
+    if (!dom.tabBtnSmartSearch || !dom.tabBtnBudgetSearch) return;
 
-    // Carroceria
-    const catOptions = `<option value="">Todas as Carrocerias</option>` +
-      categories.map(c => `<option value="${c}">${c}</option>`).join('');
-    if (dom.filterCategory) dom.filterCategory.innerHTML = catOptions;
-    if (dom.mFilterCategory) dom.mFilterCategory.innerHTML = catOptions;
+    dom.tabBtnSmartSearch.addEventListener('click', () => {
+      dom.tabBtnSmartSearch.classList.add('active');
+      dom.tabBtnBudgetSearch.classList.remove('active');
+      dom.panelSmartSearch.classList.add('active');
+      dom.panelBudgetSearch.classList.remove('active');
+    });
 
-    // Anos
-    const yearOptions = years.map(y => `<option value="${y}">${y}</option>`).join('');
-    if (dom.filterMinYear) {
-      dom.filterMinYear.innerHTML = `<option value="">Ano Mínimo</option>` + yearOptions;
+    dom.tabBtnBudgetSearch.addEventListener('click', () => {
+      dom.tabBtnBudgetSearch.classList.add('active');
+      dom.tabBtnSmartSearch.classList.remove('active');
+      dom.panelBudgetSearch.classList.add('active');
+      dom.panelSmartSearch.classList.remove('active');
+      updateBudgetCalculations();
+    });
+
+    // Sliders de Parcela e Entrada
+    if (dom.budgetInstallmentSlider) {
+      dom.budgetInstallmentSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        if (dom.budgetInstallmentDisplay) {
+          dom.budgetInstallmentDisplay.textContent = `Até ${store.formatCurrency(val)} / mês`;
+        }
+        updateBudgetCalculations();
+      });
     }
-    if (dom.filterMaxYear) {
-      dom.filterMaxYear.innerHTML = `<option value="">Ano Máximo</option>` + yearOptions;
+
+    if (dom.budgetDownPaymentSlider) {
+      dom.budgetDownPaymentSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        if (dom.budgetDownPaymentDisplay) {
+          dom.budgetDownPaymentDisplay.textContent = `${store.formatCurrency(val)} de entrada`;
+        }
+        updateBudgetCalculations();
+      });
     }
-    if (dom.mFilterMinYear) {
-      dom.mFilterMinYear.innerHTML = `<option value="">Ano Mínimo</option>` + yearOptions;
-    }
-    if (dom.mFilterMaxYear) {
-      dom.mFilterMaxYear.innerHTML = `<option value="">Ano Máximo</option>` + yearOptions;
+
+    if (dom.btnApplyBudgetFilter) {
+      dom.btnApplyBudgetFilter.addEventListener('click', () => {
+        const maxInst = Number(dom.budgetInstallmentSlider.value);
+        const downPay = Number(dom.budgetDownPaymentSlider.value);
+        state.filters.maxBudgetInstallment = maxInst;
+        state.filters.budgetDownPayment = downPay;
+        state.currentPage = 1;
+        renderCatalog();
+        scrollToCatalogTop();
+      });
     }
   }
 
-  // Filtragem e Ordenação
-  function getFilteredVehicles() {
-    const { search, brand, category, transmission, fuel, minYear, maxYear, minPrice, maxPrice, maxKm } = state.filters;
-    const searchLower = search.toLowerCase().trim();
+  function updateBudgetCalculations() {
+    if (!dom.budgetInstallmentSlider || !dom.budgetDownPaymentSlider) return;
+    const maxInst = Number(dom.budgetInstallmentSlider.value);
+    const downPay = Number(dom.budgetDownPaymentSlider.value);
+    const all = store.getVehicles();
 
-    let list = state.vehicles.filter(car => {
-      // Busca geral textual
-      if (searchLower) {
-        const fullString = `${car.brand} ${car.model} ${car.fullName} ${car.version} ${car.year} ${car.category}`.toLowerCase();
-        if (!fullString.includes(searchLower)) return false;
+    // Filtra veículos cujo valor de parcela 48x fica dentro do orçamento
+    const matches = all.filter(car => {
+      const pmt = store.calculateInstallment(car.price, downPay, 48, 1.35);
+      return pmt <= maxInst;
+    });
+
+    if (dom.budgetMatchCount) {
+      dom.budgetMatchCount.textContent = `${matches.length} veículos encontrados que cabem no seu bolso!`;
+    }
+  }
+
+  // ==========================================================================
+  // FILTRAGEM E RENDERIZAÇÃO DO CATÁLOGO GERAL
+  // ==========================================================================
+  function getFilteredVehicles() {
+    let list = store.getVehicles();
+    const f = state.filters;
+
+    list = list.filter(car => {
+      // Busca textual
+      if (f.search) {
+        const q = f.search.toLowerCase().trim();
+        const searchCorpus = `${car.brand} ${car.model} ${car.version || ''} ${car.fullName || ''} ${car.category} ${car.color || ''}`.toLowerCase();
+        if (!searchCorpus.includes(q)) return false;
       }
       // Marca
-      if (brand && car.brand !== brand) return false;
-      // Carroceria
-      if (category && car.category !== category) return false;
+      if (f.brand && car.brand.toLowerCase() !== f.brand.toLowerCase()) return false;
+      // Categoria
+      if (f.category && car.category.toLowerCase() !== f.category.toLowerCase()) return false;
       // Câmbio
-      if (transmission && car.transmission !== transmission) return false;
+      if (f.transmission && car.transmission.toLowerCase() !== f.transmission.toLowerCase()) return false;
       // Combustível
-      if (fuel && car.fuel !== fuel) return false;
-      // Ano mínimo
-      if (minYear && car.year < parseInt(minYear, 10)) return false;
-      // Ano máximo
-      if (maxYear && car.year > parseInt(maxYear, 10)) return false;
-      // Preço mínimo
-      if (minPrice && car.price < parseFloat(minPrice)) return false;
-      // Preço máximo
-      if (maxPrice && car.price > parseFloat(maxPrice)) return false;
-      // Quilometragem máxima
-      if (maxKm && car.km > parseInt(maxKm, 10)) return false;
+      if (f.fuel && car.fuel.toLowerCase() !== f.fuel.toLowerCase()) return false;
+      // Anos
+      if (f.minYear && car.year < parseInt(f.minYear, 10)) return false;
+      if (f.maxYear && car.year > parseInt(f.maxYear, 10)) return false;
+      // Preços
+      if (f.minPrice && car.price < parseFloat(f.minPrice)) return false;
+      if (f.maxPrice && car.price > parseFloat(f.maxPrice)) return false;
+      // Quilometragem
+      if (f.maxKm && car.km > parseInt(f.maxKm, 10)) return false;
+
+      // Filtro especial de Parcela do Bolso
+      if (f.maxBudgetInstallment) {
+        const pmt = store.calculateInstallment(car.price, f.budgetDownPayment || 20000, 48, 1.35);
+        if (pmt > f.maxBudgetInstallment) return false;
+      }
 
       return true;
     });
@@ -524,29 +578,67 @@
         list.sort((a, b) => a.km - b.km);
         break;
       default:
-        // Ordem natural do estoque
         break;
     }
 
     return list;
   }
 
-  // Atualização das Pills de Filtros Ativos
-  function renderActiveFilters(count) {
-    if (!dom.activeFiltersBar || !dom.activeFiltersList) return;
+  function renderCatalog() {
+    if (!dom.catalogGrid) return;
+    const filteredList = getFilteredVehicles();
+    const totalCount = filteredList.length;
 
+    if (dom.catalogCountNum) {
+      dom.catalogCountNum.textContent = totalCount;
+    }
+
+    renderActiveFilters(totalCount);
+
+    if (totalCount === 0) {
+      dom.catalogGrid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1; padding: 48px; text-align: center; background:#111; border-radius:14px; border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:3rem; margin-bottom:12px;">🔍</div>
+          <h3 style="font-family:var(--font-heading); color:#FFF; font-size:1.5rem; margin-bottom:8px;">Nenhum veículo encontrado com estes critérios</h3>
+          <p style="color:#A1A1AA; max-width:500px; margin:0 auto 20px;">Tente ajustar a faixa de preço ou parcela mensal, ou limpe os filtros para ver todo o pátio da Sartec Veículos.</p>
+          <button type="button" class="btn-primary" id="btnEmptyReset" style="margin:0 auto;">
+            Ver Todo o Estoque (${store.getVehicles().length} Veículos)
+          </button>
+        </div>
+      `;
+      const resetBtn = document.getElementById('btnEmptyReset');
+      if (resetBtn) resetBtn.addEventListener('click', clearAllFilters);
+      if (dom.paginationWrapper) dom.paginationWrapper.innerHTML = '';
+      return;
+    }
+
+    // Paginação
+    const totalPages = Math.ceil(totalCount / state.itemsPerPage);
+    if (state.currentPage > totalPages) state.currentPage = totalPages;
+    if (state.currentPage < 1) state.currentPage = 1;
+
+    const startIndex = (state.currentPage - 1) * state.itemsPerPage;
+    const pageItems = filteredList.slice(startIndex, startIndex + state.itemsPerPage);
+
+    dom.catalogGrid.innerHTML = pageItems.map(car => generateVehicleCardHtml(car)).join('');
+    bindCardInteractions(dom.catalogGrid);
+    renderPagination(totalPages);
+  }
+
+  function renderActiveFilters() {
+    if (!dom.activeFiltersBar || !dom.activeFiltersList) return;
     const activeList = [];
     const f = state.filters;
 
-    if (f.search) activeList.push({ key: 'search', label: `Carro: "${f.search}"` });
+    if (f.search) activeList.push({ key: 'search', label: `Busca: "${f.search}"` });
     if (f.brand) activeList.push({ key: 'brand', label: `Marca: ${f.brand}` });
     if (f.transmission) activeList.push({ key: 'transmission', label: `Câmbio: ${f.transmission}` });
     if (f.minYear) activeList.push({ key: 'minYear', label: `Ano a partir de ${f.minYear}` });
     if (f.maxYear) activeList.push({ key: 'maxYear', label: `Ano até ${f.maxYear}` });
     if (f.minPrice) activeList.push({ key: 'minPrice', label: `Preço Mín: R$ ${Number(f.minPrice).toLocaleString('pt-BR')}` });
     if (f.maxPrice) activeList.push({ key: 'maxPrice', label: `Preço Máx: R$ ${Number(f.maxPrice).toLocaleString('pt-BR')}` });
+    if (f.maxBudgetInstallment) activeList.push({ key: 'maxBudgetInstallment', label: `Parcela até ${store.formatCurrency(f.maxBudgetInstallment)}/mês` });
 
-    // Atualiza badge mobile
     if (dom.mobileFiltersBadge) {
       dom.mobileFiltersBadge.textContent = activeList.length;
       dom.mobileFiltersBadge.style.display = activeList.length > 0 ? 'inline-block' : 'none';
@@ -574,157 +666,12 @@
         if (key in state.filters) {
           state.filters[key] = '';
           state.currentPage = 1;
-          syncFormControlsWithState();
-          applyFilters();
+          renderCatalog();
         }
       });
     });
   }
 
-  // Renderização dos Cards na Vitrine
-  function renderCatalog() {
-    const filteredList = getFilteredVehicles();
-    const totalCount = filteredList.length;
-
-    // Atualiza contador oficial no topo da vitrine
-    if (dom.catalogCountNum) {
-      dom.catalogCountNum.textContent = totalCount;
-    }
-
-    renderActiveFilters(totalCount);
-
-    // Estado de busca sem resultados
-    if (totalCount === 0) {
-      dom.catalogGrid.innerHTML = `
-        <div class="empty-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <h3>Nenhum veículo encontrado</h3>
-          <p>Não encontramos nenhum veículo correspondente aos filtros selecionados. Tente ajustar os parâmetros ou limpar os filtros para ver todas as opções.</p>
-          <button type="button" class="btn-primary" id="btnEmptyReset">
-            Ver Todos os Veículos (${state.vehicles.length})
-          </button>
-        </div>
-      `;
-      const btnEmptyReset = document.getElementById('btnEmptyReset');
-      if (btnEmptyReset) {
-        btnEmptyReset.addEventListener('click', clearAllFilters);
-      }
-      if (dom.paginationWrapper) dom.paginationWrapper.innerHTML = '';
-      return;
-    }
-
-    // Paginação: Cálculo de Fatias
-    const totalPages = Math.ceil(totalCount / state.itemsPerPage);
-    if (state.currentPage > totalPages) state.currentPage = totalPages;
-    if (state.currentPage < 1) state.currentPage = 1;
-
-    const startIndex = (state.currentPage - 1) * state.itemsPerPage;
-    const pageItems = filteredList.slice(startIndex, startIndex + state.itemsPerPage);
-
-    // Render dos Cards
-    dom.catalogGrid.innerHTML = pageItems.map(car => {
-      const waUrl = buildWhatsAppUrl(car);
-      return `
-        <article class="vehicle-card" data-id="${car.id}">
-          <a href="veiculo.html?id=${car.id}" class="card-image-box" title="Ver detalhes de ${car.brand} ${car.model}">
-            <span class="card-category-badge">${car.category}</span>
-            <img class="card-image" 
-                 src="${car.images[0]}" 
-                 alt="${car.brand} ${car.model} ${car.year}"
-                 loading="lazy"
-                 width="400"
-                 height="250"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80';">
-          </a>
-
-          <div class="card-content">
-            <div class="card-header-info">
-              <span class="card-brand">${car.brand}</span>
-              <h3 class="card-title">
-                <a href="veiculo.html?id=${car.id}" style="color:inherit;">${car.brand} ${car.model}</a>
-              </h3>
-              <p class="card-version" title="${car.version || car.fullName}">${car.version || car.model}</p>
-            </div>
-
-            <!-- 2. Preço em Destaque Visual Imediato -->
-            <div class="card-price-box">
-              <span class="card-price-label">Preço anunciado</span>
-              <div class="card-price-value">${car.priceFormatted}</div>
-            </div>
-
-            <!-- 3. Especificações Técnicas Compactas -->
-            <div class="card-specs-row">
-              <div class="card-spec-item">
-                <span class="spec-name">Ano</span>
-                <span class="spec-value">${car.year}</span>
-              </div>
-              <div class="card-spec-item">
-                <span class="spec-name">KM</span>
-                <span class="spec-value">${car.kmFormatted}</span>
-              </div>
-              <div class="card-spec-item">
-                <span class="spec-name">Câmbio</span>
-                <span class="spec-value">${car.transmission}</span>
-              </div>
-            </div>
-
-            <!-- 4. Ações: Ver Detalhes (Página Individual Local), Espiar (Modal Rápido) & WhatsApp Oficial -->
-            <div class="card-buttons">
-              <a href="veiculo.html?id=${car.id}" class="btn-card-details" title="Acessar página completa de ${car.brand} ${car.model}">
-                Ver Detalhes
-              </a>
-              <button type="button" class="btn-card-quickview" data-quickview-id="${car.id}" aria-label="Visualização rápida de ${car.brand} ${car.model}" title="Visualização rápida">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                Espiar
-              </button>
-              <a href="${waUrl}" 
-                 target="_blank" 
-                 rel="noopener noreferrer" 
-                 class="btn-card-whatsapp"
-                 title="Negociar pelo WhatsApp">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.2.662.589 1.221.771 1.394.858.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564c.173.087.289.13.332.202.043.073.043.419-.101.824z"/>
-                </svg>
-                WhatsApp
-              </a>
-            </div>
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    // Listeners nos botões de espiar/modal rápido
-    dom.catalogGrid.querySelectorAll('.btn-card-quickview').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const carId = btn.dataset.quickviewId;
-        if (carId) openVehicleModal(carId);
-      });
-    });
-
-    // Listener para navegação ao clicar no card do veículo
-    dom.catalogGrid.querySelectorAll('.vehicle-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.btn-card-whatsapp') || e.target.closest('.btn-card-quickview')) return;
-        if (!e.target.closest('a')) {
-          const carId = card.dataset.id;
-          if (carId) {
-            window.location.href = `veiculo.html?id=${carId}`;
-          }
-        }
-      });
-    });
-
-    renderPagination(totalPages);
-  }
-
-  // Renderização dos Controles de Paginação
   function renderPagination(totalPages) {
     if (!dom.paginationWrapper) return;
     if (totalPages <= 1) {
@@ -737,7 +684,6 @@
         ‹
       </button>
     `;
-
     for (let p = 1; p <= totalPages; p++) {
       html += `
         <button type="button" class="btn-page ${p === state.currentPage ? 'active' : ''}" data-page="${p}" aria-label="Ir para página ${p}">
@@ -745,7 +691,6 @@
         </button>
       `;
     }
-
     html += `
       <button type="button" class="btn-page" id="btnPageNext" ${state.currentPage === totalPages ? 'disabled' : ''} aria-label="Próxima Página">
         ›
@@ -754,11 +699,9 @@
 
     dom.paginationWrapper.innerHTML = html;
 
-    // Listeners de paginação
     dom.paginationWrapper.querySelectorAll('.btn-page[data-page]').forEach(btn => {
       btn.addEventListener('click', () => {
         state.currentPage = parseInt(btn.dataset.page, 10);
-        updateURL();
         renderCatalog();
         scrollToCatalogTop();
       });
@@ -769,7 +712,6 @@
       btnPrev.addEventListener('click', () => {
         if (state.currentPage > 1) {
           state.currentPage--;
-          updateURL();
           renderCatalog();
           scrollToCatalogTop();
         }
@@ -781,26 +723,11 @@
       btnNext.addEventListener('click', () => {
         if (state.currentPage < totalPages) {
           state.currentPage++;
-          updateURL();
           renderCatalog();
           scrollToCatalogTop();
         }
       });
     }
-  }
-
-  function scrollToCatalogTop() {
-    const catalogEl = document.getElementById('estoque');
-    if (catalogEl) {
-      catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
-  // Aplicação Geral de Filtros
-  function applyFilters() {
-    state.currentPage = 1;
-    updateURL();
-    renderCatalog();
   }
 
   function clearAllFilters() {
@@ -815,414 +742,637 @@
       maxKm: '',
       transmission: '',
       fuel: '',
-      category: ''
+      category: '',
+      maxBudgetInstallment: null,
+      budgetDownPayment: 20000
     };
-    state.sortBy = 'default';
     state.currentPage = 1;
-
-    syncFormControlsWithState();
-    updateURL();
+    if (dom.heroSearchInput) dom.heroSearchInput.value = '';
+    if (dom.heroBrandSelect) dom.heroBrandSelect.value = '';
+    if (dom.filterSearch) dom.filterSearch.value = '';
+    if (dom.filterBrand) dom.filterBrand.value = '';
     renderCatalog();
   }
 
+  function scrollToCatalogTop() {
+    const el = document.getElementById('estoque');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Preenchimento de Opções dos Filtros
+  function populateFilterOptions() {
+    const list = store.getVehicles();
+    const brands = [...new Set(list.map(v => v.brand))].sort();
+    const categories = [...new Set(list.map(v => v.category))].sort();
+    const years = [...new Set(list.map(v => v.year))].sort((a, b) => b - a);
+
+    const brandOpts = `<option value="">Todas as Marcas</option>` + brands.map(b => `<option value="${b}">${b}</option>`).join('');
+    if (dom.filterBrand) dom.filterBrand.innerHTML = brandOpts;
+    if (dom.heroBrandSelect) dom.heroBrandSelect.innerHTML = brandOpts;
+    if (dom.mFilterBrand) dom.mFilterBrand.innerHTML = brandOpts;
+
+    const catOpts = `<option value="">Todas as Carrocerias</option>` + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    if (dom.filterCategory) dom.filterCategory.innerHTML = catOpts;
+    if (dom.mFilterCategory) dom.mFilterCategory.innerHTML = catOpts;
+
+    const yrOpts = years.map(y => `<option value="${y}">${y}</option>`).join('');
+    if (dom.filterMinYear) dom.filterMinYear.innerHTML = `<option value="">Ano Mínimo</option>` + yrOpts;
+    if (dom.filterMaxYear) dom.filterMaxYear.innerHTML = `<option value="">Ano Máximo</option>` + yrOpts;
+
+    // Preenche select do formulário de troca
+    if (dom.tradeTargetCar) {
+      dom.tradeTargetCar.innerHTML = `<option value="">Selecione o veículo da loja que você deseja...</option>` +
+        list.map(c => `<option value="${c.brand} ${c.model} (${c.year}) - ${c.priceFormatted || store.formatCurrency(c.price)}">${c.brand} ${c.model} (${c.year}) — ${c.priceFormatted || store.formatCurrency(c.price)}</option>`).join('');
+    }
+  }
+
   // ==========================================================================
-  // MODAL / DETALHES DO VEÍCULO COM VEÍCULOS RELACIONADOS
+  // QUIZ INTERATIVO "DESCUBRA SEU CARRO IDEAL EM 30 SEGUNDOS"
   // ==========================================================================
-
-  function openVehicleModal(vehicleId) {
-    const car = state.vehicles.find(v => v.id === vehicleId);
-    if (!car) return;
-
-    state.activeVehicle = car;
-
-    // Informações Básicas
-    dom.modalBrand.textContent = car.brand;
-    dom.modalTitle.textContent = `${car.brand} ${car.model}`;
-    dom.modalVersion.textContent = car.version || car.model;
-    dom.modalPrice.textContent = car.priceFormatted;
-
-    // Imagem Principal
-    dom.modalMainImg.src = car.images[0];
-    dom.modalMainImg.alt = `${car.brand} ${car.model}`;
-
-    // Miniaturas da Galeria (apenas exibidas se houver mais de 1 foto real)
-    if (dom.modalThumbnails) {
-      if (car.images && car.images.length > 1) {
-        dom.modalThumbnails.style.display = 'flex';
-        dom.modalThumbnails.innerHTML = car.images.map((imgUrl, index) => `
-          <img class="thumb-item ${index === 0 ? 'active' : ''}" 
-               src="${imgUrl}" 
-               alt="Miniatura ${index + 1}"
-               data-img="${imgUrl}">
-        `).join('');
-
-        dom.modalThumbnails.querySelectorAll('.thumb-item').forEach(thumb => {
-          thumb.addEventListener('click', () => {
-            dom.modalThumbnails.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
-            thumb.classList.add('active');
-            dom.modalMainImg.src = thumb.dataset.img;
-          });
-        });
-      } else {
-        dom.modalThumbnails.style.display = 'none';
-        dom.modalThumbnails.innerHTML = '';
-      }
+  const QUIZ_QUESTIONS = [
+    {
+      step: 1,
+      badge: "Pergunta 1 de 3",
+      title: "Qual o seu objetivo principal ao trocar ou comprar de carro?",
+      options: [
+        {
+          key: "economia",
+          icon: "⛽",
+          title: "Economia no Dia a Dia & Manutenção Barata",
+          desc: "Carro para trabalhar, rodar na cidade ou aplicativo com baixíssimo consumo."
+        },
+        {
+          key: "familia",
+          icon: "👨‍👩‍👧‍👦",
+          title: "Conforto & Espaço para a Família",
+          desc: "Porta-malas grande, ar-condicionado eficiente e bancos confortáveis para viagens."
+        },
+        {
+          key: "trabalho_agro",
+          icon: "🌾",
+          title: "Trabalho Pesado, Agro & Estrada de Terra",
+          desc: "Picape robusta a diesel ou alta, tração e força para carregar peso."
+        },
+        {
+          key: "primeiro_carro",
+          icon: "🔑",
+          title: "Primeiro Carro Acessível / Parcela que Cabe no Bolso",
+          desc: "Entrada facilitada e parcelas enxutas para sair do transporte público."
+        }
+      ]
+    },
+    {
+      step: 2,
+      badge: "Pergunta 2 de 3",
+      title: "Qual faixa de parcela mensal fica mais confortável para o seu orçamento?",
+      options: [
+        {
+          key: "ate_800",
+          icon: "💵",
+          title: "Até R$ 800 / mês",
+          desc: "Parcelas super acessíveis com financiamento facilitado."
+        },
+        {
+          key: "ate_1300",
+          icon: "💳",
+          title: "De R$ 800 a R$ 1.300 / mês",
+          desc: "Excelente equilíbrio entre ano recente e prestação equilibrada."
+        },
+        {
+          key: "ate_2000",
+          icon: "💎",
+          title: "De R$ 1.300 a R$ 2.000 / mês",
+          desc: "Para sedans médios, SUVs ou picapes completas com motor turbo."
+        },
+        {
+          key: "acima_2000",
+          icon: "⭐",
+          title: "Acima de R$ 2.000 / mês ou Pagamento À Vista",
+          desc: "Modelos topo de linha com máxima tecnologia e status."
+        }
+      ]
+    },
+    {
+      step: 3,
+      badge: "Pergunta 3 de 3",
+      title: "Qual a sua preferência em relação ao câmbio?",
+      options: [
+        {
+          key: "automatico",
+          icon: "🕹️",
+          title: "Automático obrigatório",
+          desc: "Não abro mão do conforto de não ter que trocar marcha no trânsito."
+        },
+        {
+          key: "manual",
+          icon: "⚙️",
+          title: "Manual (Mecânico)",
+          desc: "Prefiro câmbio manual pelo controle e economia de combustível."
+        },
+        {
+          key: "tanto_faz",
+          icon: "🤝",
+          title: "Tanto faz, o que for melhor negócio!",
+          desc: "Priorizo o estado de conservação, procedência e custo-benefício."
+        }
+      ]
     }
+  ];
 
-    // Ficha Técnica Completa
-    dom.modalSpecYear.textContent = car.year;
-    dom.modalSpecKm.textContent = car.kmFormatted;
-    dom.modalSpecTransmission.textContent = car.transmission;
-    dom.modalSpecFuel.textContent = car.fuel;
-    dom.modalSpecCategory.textContent = car.category;
-    dom.modalSpecColor.textContent = car.color || 'Prata';
-    dom.modalSpecPlate.textContent = `Final ${car.plateEnd || '8'}`;
-    dom.modalSpecDoors.textContent = `${car.doors || 4} Portas`;
-
-    // Equipamentos / Opcionais Reais
-    if (dom.modalFeaturesList) {
-      dom.modalFeaturesList.innerHTML = (car.features || []).map(f => `
-        <span class="feature-chip">✓ ${f}</span>
-      `).join('');
-    }
-
-    // Link para a Página Completa do Anúncio Local
-    if (dom.modalFullDetailsBtn) {
-      dom.modalFullDetailsBtn.href = `veiculo.html?id=${car.id}`;
-    }
-
-    // WhatsApp CTA Padronizado Oficial
-    const waUrl = buildWhatsAppUrl(car);
-    dom.modalWhatsappBtn.href = waUrl;
-
-    // Veículos Relacionados (do mesmo fabricante ou categoria)
-    if (dom.modalRelatedGrid) {
-      const related = state.vehicles
-        .filter(v => v.id !== car.id && (v.brand === car.brand || v.category === car.category))
-        .slice(0, 3);
-
-      if (related.length > 0) {
-        dom.modalRelatedGrid.innerHTML = related.map(rel => `
-          <div class="related-card-mini" data-id="${rel.id}">
-            <img class="related-mini-thumb" src="${rel.images[0]}" alt="${rel.fullName}">
-            <div>
-              <div class="related-mini-title">${rel.brand} ${rel.model}</div>
-              <div class="related-mini-price">${rel.priceFormatted}</div>
-            </div>
-          </div>
-        `).join('');
-
-        dom.modalRelatedGrid.querySelectorAll('.related-card-mini').forEach(relBtn => {
-          relBtn.addEventListener('click', () => {
-            openVehicleModal(relBtn.dataset.id);
-          });
-        });
-      } else {
-        dom.modalRelatedGrid.innerHTML = `<p style="font-size:0.85rem; color:var(--text-muted);">Nenhum outro veículo similar no momento.</p>`;
-      }
-    }
-
-    // Exibição do Modal
-    dom.modalBackdrop.classList.add('active');
+  function openQuizModal() {
+    if (!dom.quizModal) return;
+    state.quizStep = 1;
+    state.quizAnswers = { objective: null, maxInstallment: null, transmission: null };
+    if (dom.quizStepContainer) dom.quizStepContainer.style.display = 'block';
+    if (dom.quizResultContainer) dom.quizResultContainer.style.display = 'none';
+    renderQuizStep(1);
+    dom.quizModal.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
 
-  function closeVehicleModal() {
-    dom.modalBackdrop.classList.remove('active');
+  function closeQuizModal() {
+    if (!dom.quizModal) return;
+    dom.quizModal.classList.remove('open');
     document.body.style.overflow = '';
-    state.activeVehicle = null;
+  }
+
+  function renderQuizStep(stepNum) {
+    const q = QUIZ_QUESTIONS.find(item => item.step === stepNum);
+    if (!q) return;
+
+    if (dom.quizProgressFill) {
+      dom.quizProgressFill.style.width = `${(stepNum / 3) * 100}%`;
+    }
+    if (dom.quizStepBadge) dom.quizStepBadge.textContent = q.badge;
+    if (dom.quizQuestionTitle) dom.quizQuestionTitle.textContent = q.title;
+
+    if (dom.quizOptionsList) {
+      dom.quizOptionsList.innerHTML = q.options.map(opt => `
+        <div class="quiz-option-card" data-opt-key="${opt.key}">
+          <div class="quiz-option-icon">${opt.icon}</div>
+          <div class="quiz-option-info">
+            <h4>${opt.title}</h4>
+            <p>${opt.desc}</p>
+          </div>
+        </div>
+      `).join('');
+
+      dom.quizOptionsList.querySelectorAll('.quiz-option-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const key = card.dataset.optKey;
+          handleQuizSelection(stepNum, key);
+        });
+      });
+    }
+  }
+
+  function handleQuizSelection(stepNum, key) {
+    if (stepNum === 1) state.quizAnswers.objective = key;
+    if (stepNum === 2) state.quizAnswers.maxInstallment = key;
+    if (stepNum === 3) state.quizAnswers.transmission = key;
+
+    if (stepNum < 3) {
+      state.quizStep++;
+      renderQuizStep(state.quizStep);
+    } else {
+      calculateAndShowQuizResults();
+    }
+  }
+
+  function calculateAndShowQuizResults() {
+    if (dom.quizStepContainer) dom.quizStepContainer.style.display = 'none';
+    if (dom.quizResultContainer) dom.quizResultContainer.style.display = 'block';
+
+    const all = store.getVehicles();
+    const ans = state.quizAnswers;
+
+    // Algoritmo de compatibilidade
+    const scored = all.map(car => {
+      let score = 50;
+
+      // Objetivo
+      if (ans.objective === 'economia' && (car.fuel === 'Flex' && (car.model.includes('Voyage') || car.model.includes('Cruze') || car.model.includes('Onix')))) score += 30;
+      if (ans.objective === 'familia' && (car.category === 'Sedan' || car.category === 'SUV')) score += 30;
+      if (ans.objective === 'trabalho_agro' && (car.category === 'Picape' || car.fuel === 'Diesel')) score += 40;
+      if (ans.objective === 'primeiro_carro' && car.price < 50000) score += 35;
+
+      // Câmbio
+      if (ans.transmission === 'automatico' && car.transmission === 'Automático') score += 20;
+      if (ans.transmission === 'manual' && car.transmission === 'Manual') score += 20;
+      if (ans.transmission === 'tanto_faz') score += 15;
+
+      // Parcela
+      if (ans.maxInstallment === 'ate_800' && car.price < 40000) score += 25;
+      if (ans.maxInstallment === 'ate_1300' && car.price >= 40000 && car.price <= 70000) score += 25;
+      if (ans.maxInstallment === 'ate_2000' && car.price > 70000) score += 25;
+
+      return { car, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    const topMatches = scored.slice(0, 2).map(s => s.car);
+
+    if (dom.quizMatchedVehiclesGrid) {
+      dom.quizMatchedVehiclesGrid.innerHTML = topMatches.map(car => generateVehicleCardHtml(car)).join('');
+      bindCardInteractions(dom.quizMatchedVehiclesGrid);
+    }
   }
 
   // ==========================================================================
-  // CONFIGURAÇÃO DOS LISTENERS DE EVENTOS
+  // MODAL COMPARADOR LADO A LADO (ATÉ 3 CARROS)
   // ==========================================================================
+  function openCompareModal() {
+    if (!dom.compareModal || !dom.compareContentWrapper) return;
+    const compareIds = store.getCompareList();
+    const cars = compareIds.map(id => store.getVehicleById(id)).filter(Boolean);
 
+    if (cars.length === 0) {
+      dom.compareContentWrapper.innerHTML = `
+        <div style="text-align:center; padding:30px; color:#A1A1AA;">
+          <p>Você ainda não selecionou veículos para comparar.</p>
+          <p style="font-size:0.85rem; margin-top:6px;">Clique no ícone <strong>⚖️</strong> nos cards dos carros para compará-los lado a lado!</p>
+        </div>
+      `;
+    } else {
+      dom.compareContentWrapper.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="compare-modal-table">
+            <thead>
+              <tr>
+                <th style="width:160px;">Especificação</th>
+                ${cars.map(c => `
+                  <th>
+                    <div style="font-size:1.1rem; color:#FFF; font-weight:800;">${c.brand} ${c.model}</div>
+                    <div style="color:var(--color-accent); font-size:1.25rem; font-weight:900; margin:6px 0;">${c.priceFormatted || store.formatCurrency(c.price)}</div>
+                    <button type="button" class="btn-card-icon" data-remove-compare="${c.id}" style="margin:0 auto;" title="Remover da comparação">✕</button>
+                  </th>
+                `).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ano / Modelo</td>
+                ${cars.map(c => `<td><strong>${c.yearModel || c.year}</strong></td>`).join('')}
+              </tr>
+              <tr>
+                <td>Quilometragem</td>
+                ${cars.map(c => `<td>${c.kmFormatted || store.formatKm(c.km)}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Câmbio</td>
+                ${cars.map(c => `<td>${c.transmission}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Combustível</td>
+                ${cars.map(c => `<td>${c.fuel}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Tabela FIPE Oficial</td>
+                ${cars.map(c => `<td>${c.fipeFormatted || store.formatCurrency(c.fipePrice || c.price * 1.03)}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Consumo Estimado</td>
+                ${cars.map(c => `<td>${c.consumption || '10,5 km/l cidade | 13,8 km/l estrada'}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Destaques do Veículo</td>
+                ${cars.map(c => `<td><span style="font-size:0.8rem; color:#E4E4E7;">${c.specialBadge || 'Periciado 100%'}</span></td>`).join('')}
+              </tr>
+              <tr>
+                <td>Ação Comercial</td>
+                ${cars.map(c => `
+                  <td>
+                    <a href="veiculo.html?id=${c.id}" class="btn-card-details" style="margin-bottom:6px; display:inline-block;">Ver Detalhes</a><br>
+                    <a href="${buildWhatsAppUrl(c)}" target="_blank" class="btn-card-whatsapp" style="display:inline-block; font-size:0.75rem; padding:6px 12px;">Negociar WhatsApp</a>
+                  </td>
+                `).join('')}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      dom.compareContentWrapper.querySelectorAll('[data-remove-compare]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.removeCompare;
+          store.toggleCompare(id);
+          updateTopCounters();
+          openCompareModal();
+        });
+      });
+    }
+
+    dom.compareModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCompareModal() {
+    if (!dom.compareModal) return;
+    dom.compareModal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ==========================================================================
+  // MODAL FAVORITOS
+  // ==========================================================================
+  function openFavoritesModal() {
+    if (!dom.favoritesModal || !dom.favoritesListWrapper) return;
+    const favIds = store.getFavorites();
+    const cars = favIds.map(id => store.getVehicleById(id)).filter(Boolean);
+
+    if (cars.length === 0) {
+      dom.favoritesListWrapper.innerHTML = `
+        <div style="text-align:center; padding:30px; color:#A1A1AA;">
+          <p>Você ainda não favoritou nenhum carro.</p>
+          <p style="font-size:0.85rem; margin-top:6px;">Clique no coração <strong>❤️</strong> nos cards dos veículos para salvá-los aqui!</p>
+        </div>
+      `;
+    } else {
+      dom.favoritesListWrapper.innerHTML = cars.map(c => `
+        <div style="display:flex; align-items:center; justify-content:space-between; background:#181818; padding:12px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img src="${(c.images && c.images[0]) || 'img/hero-bg.jpg'}" alt="${c.model}" style="width:60px; height:45px; object-fit:cover; border-radius:6px;">
+            <div>
+              <h4 style="color:#FFF; font-size:0.95rem; margin:0;">${c.brand} ${c.model}</h4>
+              <span style="color:var(--color-accent); font-weight:800; font-size:1rem;">${c.priceFormatted || store.formatCurrency(c.price)}</span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <a href="veiculo.html?id=${c.id}" class="btn-card-details" style="padding:6px 12px; font-size:0.78rem;">Ver</a>
+            <a href="${buildWhatsAppUrl(c)}" target="_blank" class="btn-card-whatsapp" style="padding:6px 12px; font-size:0.78rem;">WhatsApp</a>
+            <button type="button" class="btn-card-icon active" data-remove-fav="${c.id}" title="Remover">✕</button>
+          </div>
+        </div>
+      `).join('');
+
+      dom.favoritesListWrapper.querySelectorAll('[data-remove-fav]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.removeFav;
+          store.toggleFavorite(id);
+          updateTopCounters();
+          openFavoritesModal();
+        });
+      });
+    }
+
+    dom.favoritesModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeFavoritesModal() {
+    if (!dom.favoritesModal) return;
+    dom.favoritesModal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ==========================================================================
+  // PROVA SOCIAL REGIONAL FLUTUANTE (NOTIFICAÇÕES TOAST)
+  // ==========================================================================
+  const SOCIAL_NOTIFICATIONS = [
+    { city: "Carlos de Paranavaí - PR", action: "acabou de simular financiamento do Jeep Renegade Longitude" },
+    { city: "Marcos de Planaltina do PR", action: "agendou visita para ver o Voyage 1.6 MSI" },
+    { city: "Juliana de Nova Londrina - PR", action: "favoritou o Chevrolet Cruze LTZ 1.4 Turbo" },
+    { city: "Roberto de Loanda - PR", action: "solicitou avaliação de usado na troca para a S10 Cabine Dupla" },
+    { city: "Anderson de Santa Isabel do Ivaí - PR", action: "fez proposta de compra no Voyage 1.0 VHT" },
+    { city: "Patrícia de Terra Rica - PR", action: "consultou taxa de aprovação para sedan automático" }
+  ];
+
+  let toastIndex = 0;
+  function triggerSocialProofToast() {
+    if (!dom.socialProofToast || !dom.toastTitle || !dom.toastDesc) return;
+    const item = SOCIAL_NOTIFICATIONS[toastIndex % SOCIAL_NOTIFICATIONS.length];
+    toastIndex++;
+
+    dom.toastTitle.textContent = item.city;
+    dom.toastDesc.textContent = item.action;
+    dom.socialProofToast.classList.add('visible');
+
+    setTimeout(() => {
+      dom.socialProofToast.classList.remove('visible');
+    }, 6000);
+  }
+
+  function initSocialProofToasts() {
+    setTimeout(triggerSocialProofToast, 4000);
+    setInterval(triggerSocialProofToast, 18000);
+
+    if (dom.btnDismissToast && dom.socialProofToast) {
+      dom.btnDismissToast.addEventListener('click', () => {
+        dom.socialProofToast.classList.remove('visible');
+      });
+    }
+  }
+
+  // ==========================================================================
+  // FORMULÁRIO DE TROCA E RADAR CAÇADOR DE VEÍCULOS
+  // ==========================================================================
+  function initTradeInForms() {
+    if (dom.tabBtnTradeIn && dom.tabBtnCarHunter && dom.tradeInForm && dom.hunterForm) {
+      dom.tabBtnTradeIn.addEventListener('click', () => {
+        dom.tabBtnTradeIn.classList.add('active');
+        dom.tabBtnCarHunter.classList.remove('active');
+        dom.tradeInForm.style.display = 'grid';
+        dom.hunterForm.style.display = 'none';
+      });
+
+      dom.tabBtnCarHunter.addEventListener('click', () => {
+        dom.tabBtnCarHunter.classList.add('active');
+        dom.tabBtnTradeIn.classList.remove('active');
+        dom.hunterForm.style.display = 'grid';
+        dom.tradeInForm.style.display = 'none';
+      });
+
+      // Submit Troca
+      dom.tradeInForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const currentCar = document.getElementById('tradeCurrentCar').value;
+        const year = document.getElementById('tradeYear').value;
+        const km = document.getElementById('tradeKm').value;
+        const targetCar = document.getElementById('tradeTargetCar').value;
+        const name = document.getElementById('tradeName').value;
+        const city = document.getElementById('tradeCity').value;
+        const phone = document.getElementById('tradePhone').value;
+
+        // Salva lead no CRM
+        store.addLead({
+          name,
+          city,
+          phone,
+          phoneRaw: phone.replace(/\D/g, ''),
+          vehicleName: targetCar || "Veículo Sartec",
+          type: "proposta_troca",
+          hasTradeIn: true,
+          tradeInDetails: `${currentCar} (${year}) - ${km}`,
+          notes: `Proposta de troca enviada pelo formulário da vitrine. Quer avaliar seu ${currentCar} para comprar ${targetCar}.`
+        });
+
+        // Envia para o WhatsApp da loja
+        const msg = `Olá Sartec Veículos! Gostaria de uma avaliação para dar meu carro na troca:\n\n*Meu Carro Atual:* ${currentCar}\n*Ano:* ${year}\n*KM:* ${km}\n*Tenho interesse em:* ${targetCar}\n*Meu Nome:* ${name}\n*Cidade:* ${city}`;
+        window.open(`https://wa.me/5544991484162?text=${encodeURIComponent(msg)}`, '_blank');
+        alert("Sua proposta foi registrada no sistema da Sartec e direcionada para o WhatsApp do nosso avaliador!");
+        dom.tradeInForm.reset();
+      });
+
+      // Submit Radar Caçador
+      dom.hunterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const model = document.getElementById('hunterDesiredModel').value;
+        const minYear = document.getElementById('hunterMinYear').value;
+        const maxPrice = document.getElementById('hunterMaxPrice').value;
+        const name = document.getElementById('hunterName').value;
+        const city = document.getElementById('hunterCity').value;
+        const phone = document.getElementById('hunterPhone').value;
+
+        store.addLead({
+          name,
+          city,
+          phone,
+          phoneRaw: phone.replace(/\D/g, ''),
+          vehicleName: `Radar: ${model}`,
+          type: "radar_cacador",
+          notes: `Cliente encomendou modelo pelo Radar Caçador: ${model}, ano mínimo ${minYear || 'Indiferente'}, valor até ${maxPrice || 'A combinar'}.`
+        });
+
+        const msg = `Olá Sartec Veículos! Gostaria de encomendar um modelo pelo Radar Caçador:\n\n*Modelo Procurado:* ${model}\n*Ano Mínimo:* ${minYear || 'Tanto faz'}\n*Preço Máximo:* ${maxPrice || 'A combinar'}\n*Meu Nome:* ${name}\n*Cidade:* ${city}`;
+        window.open(`https://wa.me/5544991484162?text=${encodeURIComponent(msg)}`, '_blank');
+        alert("Radar Caçador ativado com sucesso! Avisaremos assim que o modelo entrar em nosso estoque.");
+        dom.hunterForm.reset();
+      });
+    }
+  }
+
+  // ==========================================================================
+  // CONFIGURAÇÃO GERAL DE EVENT LISTENERS
+  // ==========================================================================
   function setupEventListeners() {
-    // Busca por Texto no Catálogo (com debounce)
-    let searchTimer;
+    // Menu Mobile
+    if (dom.mobileToggle && dom.mobileNavPanel) {
+      dom.mobileToggle.addEventListener('click', () => {
+        dom.mobileToggle.classList.toggle('active');
+        dom.mobileNavPanel.classList.toggle('open');
+      });
+    }
+
+    // Busca Rápida Hero
+    if (dom.heroQuickForm) {
+      dom.heroQuickForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (dom.heroSearchInput) state.filters.search = dom.heroSearchInput.value;
+        if (dom.heroBrandSelect) state.filters.brand = dom.heroBrandSelect.value;
+        state.currentPage = 1;
+        renderCatalog();
+        scrollToCatalogTop();
+      });
+    }
+
+    // Sidebar Filtros Desktop
     if (dom.filterSearch) {
+      let searchTimer;
       dom.filterSearch.addEventListener('input', (e) => {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => {
           state.filters.search = e.target.value;
-          applyFilters();
+          state.currentPage = 1;
+          renderCatalog();
         }, 220);
       });
     }
 
-    // Selects da Barra Lateral
     if (dom.filterBrand) {
       dom.filterBrand.addEventListener('change', (e) => {
         state.filters.brand = e.target.value;
-        applyFilters();
+        state.currentPage = 1;
+        renderCatalog();
       });
     }
 
     if (dom.filterCategory) {
       dom.filterCategory.addEventListener('change', (e) => {
         state.filters.category = e.target.value;
-        applyFilters();
+        state.currentPage = 1;
+        renderCatalog();
       });
     }
 
     if (dom.filterTransmission) {
       dom.filterTransmission.addEventListener('change', (e) => {
         state.filters.transmission = e.target.value;
-        applyFilters();
-      });
-    }
-
-    if (dom.filterFuel) {
-      dom.filterFuel.addEventListener('change', (e) => {
-        state.filters.fuel = e.target.value;
-        applyFilters();
-      });
-    }
-
-    if (dom.filterMinYear) {
-      dom.filterMinYear.addEventListener('change', (e) => {
-        state.filters.minYear = e.target.value;
-        applyFilters();
-      });
-    }
-
-    if (dom.filterMaxYear) {
-      dom.filterMaxYear.addEventListener('change', (e) => {
-        state.filters.maxYear = e.target.value;
-        applyFilters();
+        state.currentPage = 1;
+        renderCatalog();
       });
     }
 
     if (dom.filterMinPrice) {
       dom.filterMinPrice.addEventListener('change', (e) => {
         state.filters.minPrice = e.target.value;
-        applyFilters();
+        state.currentPage = 1;
+        renderCatalog();
       });
     }
 
     if (dom.filterMaxPrice) {
       dom.filterMaxPrice.addEventListener('change', (e) => {
         state.filters.maxPrice = e.target.value;
-        applyFilters();
+        state.currentPage = 1;
+        renderCatalog();
       });
     }
 
-    if (dom.filterMaxKm) {
-      dom.filterMaxKm.addEventListener('change', (e) => {
-        state.filters.maxKm = e.target.value;
-        applyFilters();
-      });
-    }
-
-    // Ordenação
-    if (dom.sortSelect) {
-      dom.sortSelect.addEventListener('change', (e) => {
-        state.sortBy = e.target.value;
-        applyFilters();
-      });
-    }
-
-    // Limpar Filtros
     if (dom.btnClearFilters) {
       dom.btnClearFilters.addEventListener('click', clearAllFilters);
     }
 
-    // Hero Busca Rápida Form
-    if (dom.heroQuickForm) {
-      dom.heroQuickForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const keyword = dom.heroSearchInput ? dom.heroSearchInput.value : '';
-        const brand = dom.heroBrandSelect ? dom.heroBrandSelect.value : '';
-
-        state.filters.search = keyword;
-        state.filters.brand = brand;
-        syncFormControlsWithState();
-        applyFilters();
-        scrollToCatalogTop();
+    if (dom.sortSelect) {
+      dom.sortSelect.addEventListener('change', (e) => {
+        state.sortBy = e.target.value;
+        renderCatalog();
       });
     }
 
-    // Modal Fechamento
-    if (dom.modalCloseBtn) {
-      dom.modalCloseBtn.addEventListener('click', closeVehicleModal);
-    }
+    // Abertura de Modais
+    if (dom.btnOpenFavorites) dom.btnOpenFavorites.addEventListener('click', openFavoritesModal);
+    if (dom.btnFavoritesClose) dom.btnFavoritesClose.addEventListener('click', closeFavoritesModal);
 
-    if (dom.modalBackdrop) {
-      dom.modalBackdrop.addEventListener('click', (e) => {
-        if (e.target === dom.modalBackdrop) {
-          closeVehicleModal();
-        }
-      });
-    }
+    if (dom.btnOpenCompare) dom.btnOpenCompare.addEventListener('click', openCompareModal);
+    if (dom.btnCompareClose) dom.btnCompareClose.addEventListener('click', closeCompareModal);
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeVehicleModal();
-        closeMobileFiltersDrawer();
-      }
+    if (dom.btnOpenQuiz) dom.btnOpenQuiz.addEventListener('click', openQuizModal);
+    if (dom.btnBannerOpenQuiz) dom.btnBannerOpenQuiz.addEventListener('click', openQuizModal);
+    if (dom.btnQuizClose) dom.btnQuizClose.addEventListener('click', closeQuizModal);
+    if (dom.btnRestartQuiz) dom.btnRestartQuiz.addEventListener('click', openQuizModal);
+
+    // Escuta atualizações de estoque (feitas por exemplo no painel Admin)
+    window.addEventListener('sartec:vehicles-updated', () => {
+      state.vehicles = store.getVehicles();
+      populateFilterOptions();
+      renderFeaturedVehicles();
+      renderCatalog();
     });
-
-    // Mobile Menu
-    if (dom.mobileToggle && dom.mobileNavPanel) {
-      dom.mobileToggle.addEventListener('click', () => {
-        dom.mobileToggle.classList.toggle('active');
-        dom.mobileNavPanel.classList.toggle('open');
-      });
-
-      dom.mobileNavPanel.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-          dom.mobileToggle.classList.remove('active');
-          dom.mobileNavPanel.classList.remove('open');
-        });
-      });
-    }
-
-    // Mobile Filters Drawer
-    if (dom.btnOpenMobileFilters) {
-      dom.btnOpenMobileFilters.addEventListener('click', openMobileFiltersDrawer);
-    }
-    if (dom.btnCloseMobileFilters) {
-      dom.btnCloseMobileFilters.addEventListener('click', closeMobileFiltersDrawer);
-    }
-    if (dom.btnApplyMobileFilters) {
-      dom.btnApplyMobileFilters.addEventListener('click', () => {
-        applyFilters();
-        closeMobileFiltersDrawer();
-        scrollToCatalogTop();
-      });
-    }
-    if (dom.btnClearMobileFilters) {
-      dom.btnClearMobileFilters.addEventListener('click', () => {
-        clearAllFilters();
-        closeMobileFiltersDrawer();
-      });
-    }
-
-    // Listeners diretos para controles do Mobile Drawer
-    if (dom.mFilterSearch) {
-      let mSearchTimer;
-      dom.mFilterSearch.addEventListener('input', (e) => {
-        clearTimeout(mSearchTimer);
-        mSearchTimer = setTimeout(() => {
-          state.filters.search = e.target.value;
-          if (dom.filterSearch) dom.filterSearch.value = e.target.value;
-          applyFilters();
-        }, 220);
-      });
-    }
-    if (dom.mFilterBrand) {
-      dom.mFilterBrand.addEventListener('change', (e) => {
-        state.filters.brand = e.target.value;
-        if (dom.filterBrand) dom.filterBrand.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterCategory) {
-      dom.mFilterCategory.addEventListener('change', (e) => {
-        state.filters.category = e.target.value;
-        if (dom.filterCategory) dom.filterCategory.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterTransmission) {
-      dom.mFilterTransmission.addEventListener('change', (e) => {
-        state.filters.transmission = e.target.value;
-        if (dom.filterTransmission) dom.filterTransmission.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterFuel) {
-      dom.mFilterFuel.addEventListener('change', (e) => {
-        state.filters.fuel = e.target.value;
-        if (dom.filterFuel) dom.filterFuel.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterMinYear) {
-      dom.mFilterMinYear.addEventListener('change', (e) => {
-        state.filters.minYear = e.target.value;
-        if (dom.filterMinYear) dom.filterMinYear.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterMaxYear) {
-      dom.mFilterMaxYear.addEventListener('change', (e) => {
-        state.filters.maxYear = e.target.value;
-        if (dom.filterMaxYear) dom.filterMaxYear.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterMinPrice) {
-      dom.mFilterMinPrice.addEventListener('change', (e) => {
-        state.filters.minPrice = e.target.value;
-        if (dom.filterMinPrice) dom.filterMinPrice.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterMaxPrice) {
-      dom.mFilterMaxPrice.addEventListener('change', (e) => {
-        state.filters.maxPrice = e.target.value;
-        if (dom.filterMaxPrice) dom.filterMaxPrice.value = e.target.value;
-        applyFilters();
-      });
-    }
-    if (dom.mFilterMaxKm) {
-      dom.mFilterMaxKm.addEventListener('change', (e) => {
-        state.filters.maxKm = e.target.value;
-        if (dom.filterMaxKm) dom.filterMaxKm.value = e.target.value;
-        applyFilters();
-      });
-    }
-  }
-
-  function openMobileFiltersDrawer() {
-    if (dom.mobileFiltersDrawer) {
-      dom.mobileFiltersDrawer.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  function closeMobileFiltersDrawer() {
-    if (dom.mobileFiltersDrawer) {
-      dom.mobileFiltersDrawer.classList.remove('open');
-      document.body.style.overflow = '';
-    }
   }
 
   // ==========================================================================
-  // GERENCIAMENTO DA TELA DE CARREGAMENTO & INICIALIZAÇÃO
+  // INICIALIZAÇÃO DA APLICAÇÃO
   // ==========================================================================
-  function hidePageLoader() {
-    const loader = document.getElementById('pageLoader');
-    if (loader) {
-      setTimeout(() => {
-        loader.classList.add('loaded');
-      }, 250);
-    }
-  }
-
   function init() {
     initHeroCarousel();
-    renderFeaturedVehicles();
+    initDualSearchTabs();
     populateFilterOptions();
-    loadFiltersFromURL();
-    setupEventListeners();
+    renderFeaturedVehicles();
     renderCatalog();
-    hidePageLoader();
+    updateTopCounters();
+    initSocialProofToasts();
+    initTradeInForms();
+    setupEventListeners();
+
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+      setTimeout(() => loader.classList.add('loaded'), 250);
+    }
   }
 
-  window.addEventListener('load', hidePageLoader);
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(hidePageLoader, 400);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
-
-  init();
-
-  // Expor funções públicas se necessário
-  window.sartecApp = {
-    openModal: openVehicleModal,
-    clearFilters: clearAllFilters,
-    state: state
-  };
-
 })();
